@@ -443,33 +443,33 @@ void OnChartEvent(const int EventID,      //Event Event ID
       if(ShortToString(KeyThatWasPressed) == "s") {
          Direction = "Sell";
          Continue_ = false;
-         SendNotification(Direction + " Direction Set");
-         MessageBox(Direction + " Direction Set");
+         SendNotification(_Symbol + " " + Direction + " Direction Set");
+         MessageBox(_Symbol + " " + Direction + " Direction Set");
       }
       else if(ShortToString(KeyThatWasPressed) == "b") {
          Direction = "Buy";
          Continue_ = false;
-         SendNotification(Direction + " Direction Set");
-         MessageBox(Direction + " Direction Set");
+         SendNotification(_Symbol + " " + Direction + " Direction Set");
+         MessageBox(_Symbol + " " + Direction + " Direction Set");
       }
       else if(ShortToString(KeyThatWasPressed) == "n") {
          Direction = "Both";
          Continue_ = false;
-         SendNotification(Direction + " Direction Set");
-         MessageBox(Direction + " Direction Set");
+         SendNotification(_Symbol + " " + Direction + " Direction Set"); 
+         MessageBox(_Symbol + " " + Direction + " Direction Set");
       }
       if(ShortToString(KeyThatWasPressed) == "c" && !Continue_) {
          
-         MessageBox("Continue Alerts On");
+         MessageBox(_Symbol + " " + "Continue Alerts On");
          Continue_ = true;
       }
       else if(ShortToString(KeyThatWasPressed) == "c" && Continue_) {
          
-         MessageBox("Continue Alerts Off");
+         MessageBox(_Symbol + " " + "Continue Alerts Off");
          Continue_ = false;
       }
       if(ShortToString(KeyThatWasPressed) == "w") {
-         Alert("Window Open");
+         Alert("Window Opened");
       }
    }
 }
