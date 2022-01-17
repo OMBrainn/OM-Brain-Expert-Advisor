@@ -336,6 +336,7 @@ void CheckForNewCandle(int CandleNumber) {
 bool LiquidityHit_Fr_UpSide = false;
 bool LiquidityHit_Fr_DownSide = false;
 int c = 0;
+int TL = 1;
 void LiquidityCheck(){
    for(c;c<Window;c++) {
       if(HCandles_[c].Pattern == "Bullish Engulfing"
@@ -347,14 +348,15 @@ void LiquidityCheck(){
             if(HCandles_[c].LiquidityLine < iHigh(_Symbol, PERIOD_CURRENT, 0)
             && HCandles_[c].LiquidityLine > iLow(_Symbol, PERIOD_CURRENT, 0)) {
                ObjectDelete(_Symbol, "Liquidity: " + HCandles_[c].RCN);
-               ObjectCreate(_Symbol, "Taken Liquidity: " + HCandles_[c].RCN,
+               ObjectCreate(_Symbol, "Taken Liquidity: " + TL,
                OBJ_RECTANGLE, 0,
                HCandles_[c].Time,
                HCandles_[c].LiquidityLine + LiquidityRange,
                HCandles_[0].Time,
                HCandles_[c].LiquidityLine - LiquidityRange);
-               ObjectSetInteger(0,"Taken Liquidity: " + HCandles_[c].RCN,OBJPROP_COLOR,clrOrange);
-               ObjectSetInteger(0,"Taken Liquidity: " + HCandles_[c].RCN,OBJPROP_BACK,false);
+               ObjectSetInteger(0,"Taken Liquidity: " + TL,OBJPROP_COLOR,clrOrange);
+               ObjectSetInteger(0,"Taken Liquidity: " + TL,OBJPROP_BACK,false);
+               TL++;
                Print("Liquidity Hit");
                if((HCandles_[c].LiquidityLine > iOpen(_Symbol, PERIOD_CURRENT, 0))
                && !LiquidityHit_Fr_DownSide) {
