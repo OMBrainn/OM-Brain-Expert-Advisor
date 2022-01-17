@@ -517,6 +517,7 @@ void CleanUpDisplay(){
       CleanUp = false;
    }
 }
+
 //Pattern Pre Checker
 bool timeLock = false;
 int CurrentPIT;
@@ -525,7 +526,7 @@ void TimeCheck(){
       if(PointInTime() == 3
       || PointInTime() == 4
       || PointInTime() == 8
-      || PointInTime() == 9) {
+      || PointInTime() == 9) { 
          Print(PointInTime());
          PlaySound ("alert2.wav");
          SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
@@ -564,6 +565,7 @@ void CandleInfo(int RCN){
 static int cCalc = 0;
 void CandleCalculations(){
    //Pattern? (PcCalced Patterned)
+         if(LiquidityHit_Fr_UpSide) {
          //Bullish Engulfing
             if((AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
                || AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
@@ -575,8 +577,21 @@ void CandleCalculations(){
             && AC_Candles[cCalc + 1].CandleType == "Bearish"){
                TimeCheck();
             }
+         //Morning
+            else if(AC_Candles[cCalc].CandleType == "Bullish"
+            && AC_Candles[cCalc + 2].CandleType == "Bearish"
+            
+            && ((AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
+            && AC_Candles[cCalc + 1].Close < AC_Candles[cCalc + 2].Close)
+            ||
+               (AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
+            && AC_Candles[cCalc + 2].Open > AC_Candles[cCalc].Open))){
+               TimeCheck();
+            }
+         }
+         if(LiquidityHit_Fr_DownSide) {
          //Bearish Engulfing
-            else if((AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
+            if((AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
                || AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
                || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
             && AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].High
@@ -597,17 +612,8 @@ void CandleCalculations(){
             && AC_Candles[cCalc + 2].Open < AC_Candles[cCalc].Open))){
                TimeCheck();
             }
-         //Morning
-            else if(AC_Candles[cCalc].CandleType == "Bullish"
-            && AC_Candles[cCalc + 2].CandleType == "Bearish"
-            
-            && ((AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
-            && AC_Candles[cCalc + 1].Close < AC_Candles[cCalc + 2].Close)
-            ||
-               (AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
-            && AC_Candles[cCalc + 2].Open > AC_Candles[cCalc].Open))){
-               TimeCheck();
-            }
+         }
+         
 }
 void ActivePreChecker(){
 //Get Info of First 3 Candles
@@ -619,11 +625,11 @@ void ActivePreChecker(){
 CandleCalculations();
 }
 //Liquidity Hit & Pre Pattern Checker
-void LH_PatternPreChecker(){ 
+void LH_PatternPreChecker(){
    if(LiquidityHit_Fr_DownSide || LiquidityHit_Fr_UpSide) {
       ActivePreChecker();
    }
-}
+} 
 void OnTick(){
    LH_PatternPreChecker();
    CPS();

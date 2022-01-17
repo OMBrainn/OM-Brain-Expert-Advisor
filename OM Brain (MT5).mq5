@@ -562,6 +562,7 @@ void CandleInfo(int RCN){
 static int cCalc = 0;
 void CandleCalculations(){
    //Pattern? (PcCalced Patterned)
+         if(LiquidityHit_Fr_UpSide) {
          //Bullish Engulfing
             if((AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
                || AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
@@ -573,8 +574,21 @@ void CandleCalculations(){
             && AC_Candles[cCalc + 1].CandleType == "Bearish"){
                TimeCheck();
             }
+         //Morning
+            else if(AC_Candles[cCalc].CandleType == "Bullish"
+            && AC_Candles[cCalc + 2].CandleType == "Bearish"
+            
+            && ((AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
+            && AC_Candles[cCalc + 1].Close < AC_Candles[cCalc + 2].Close)
+            ||
+               (AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
+            && AC_Candles[cCalc + 2].Open > AC_Candles[cCalc].Open))){
+               TimeCheck();
+            }
+         }
+         if(LiquidityHit_Fr_DownSide) {
          //Bearish Engulfing
-            else if((AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
+            if((AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
                || AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
                || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
             && AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].High
@@ -595,17 +609,8 @@ void CandleCalculations(){
             && AC_Candles[cCalc + 2].Open < AC_Candles[cCalc].Open))){
                TimeCheck();
             }
-         //Morning
-            else if(AC_Candles[cCalc].CandleType == "Bullish"
-            && AC_Candles[cCalc + 2].CandleType == "Bearish"
-            
-            && ((AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
-            && AC_Candles[cCalc + 1].Close < AC_Candles[cCalc + 2].Close)
-            ||
-               (AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
-            && AC_Candles[cCalc + 2].Open > AC_Candles[cCalc].Open))){
-               TimeCheck();
-            }
+         }
+         
 }
 void ActivePreChecker(){
 //Get Info of First 3 Candles
@@ -621,7 +626,7 @@ void LH_PatternPreChecker(){
    if(LiquidityHit_Fr_DownSide || LiquidityHit_Fr_UpSide) {
       ActivePreChecker();
    }
-}
+} 
 void OnTick(){
    LH_PatternPreChecker();
    CPS();
