@@ -565,7 +565,7 @@ void CandleInfo(int RCN){
 static int cCalc = 0;
 void CandleCalculations(){
    //Pattern? (PcCalced Patterned)
-         if(LiquidityHit_Fr_UpSide) {
+         if(LiquidityHit_Fr_UpSide && (Direction == "Buy" || Direction == "Both")) {
          //Bullish Engulfing
             if((AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
                || AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
@@ -589,7 +589,7 @@ void CandleCalculations(){
                TimeCheck();
             }
          }
-         if(LiquidityHit_Fr_DownSide) {
+         if(LiquidityHit_Fr_DownSide && (Direction == "Sell" || Direction == "Both")) {
          //Bearish Engulfing
             if((AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
                || AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
@@ -614,7 +614,7 @@ void CandleCalculations(){
             }
          }
          
-}
+} 
 void ActivePreChecker(){
 //Get Info of First 3 Candles
   CandleInfo(0);
