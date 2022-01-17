@@ -515,7 +515,115 @@ void CleanUpDisplay(){
       CleanUp = false;
    }
 }
+//Pattern Pre Checker
+bool timeLock = false;
+int CurrentPIT;
+void TimeCheck(){
+   if(!timeLock){
+      if(PointInTime() == 3
+      || PointInTime() == 4
+      || PointInTime() == 8
+      || PointInTime() == 9) { 
+         Print(PointInTime());
+         PlaySound ("alert2.wav");
+         SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
+         CurrentPIT = PointInTime();
+         timeLock = true;
+      }
+   }
+   if(timeLock){
+      if(CurrentPIT != PointInTime()){
+         timeLock = false;
+      }
+   }
+}
+int PointInTime(){
+   string Time = "" + TimeToString(TimeCurrent(),TIME_MINUTES);
+   string PointInTime_str = StringSubstr(Time,4,3);
+   int PointInTime_int = StringToInteger(PointInTime_str);
+   return PointInTime_int;
+}
+HCandles AC_Candles[3]; 
+void CandleInfo(int RCN){
+//Get Open and Close Info
+   AC_Candles[RCN].Close = iClose(_Symbol, PERIOD_CURRENT, RCN);
+   AC_Candles[RCN].Open = iOpen(_Symbol, PERIOD_CURRENT, RCN);
+   AC_Candles[RCN].High = iHigh(_Symbol, PERIOD_CURRENT, RCN);
+   AC_Candles[RCN].Low = iLow(_Symbol, PERIOD_CURRENT, RCN);
+//Determine Candle Type
+//Bullish or Bearish?
+            if(AC_Candles[RCN].Open < AC_Candles[RCN].Close){
+               AC_Candles[RCN].CandleType = "Bullish";
+            }
+            else {
+               AC_Candles[RCN].CandleType = "Bearish";
+            }
+}
+static int cCalc = 0;
+void CandleCalculations(){
+   //Pattern? (PcCalced Patterned)
+         //Bullish Engulfing
+            if((AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
+               || AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
+               || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
+               
+            && AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Low 
+            && AC_Candles[cCalc].Close > AC_Candles[cCalc + 1].Open
+            && AC_Candles[cCalc].CandleType == "Bullish"
+            && AC_Candles[cCalc + 1].CandleType == "Bearish"){
+               TimeCheck();
+            }
+         //Bearish Engulfing
+            else if((AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
+               || AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
+               || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
+            && AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].High
+            && AC_Candles[cCalc].Close < AC_Candles[cCalc + 1].Open
+            && AC_Candles[cCalc].CandleType == "Bearish"
+            && AC_Candles[cCalc + 1].CandleType == "Bullish"){
+               TimeCheck();
+            }
+         //Evening Star
+            else if(AC_Candles[cCalc].CandleType == "Bearish"
+            && AC_Candles[cCalc + 2].CandleType == "Bullish"
+            
+            && ((AC_Candles[cCalc].High < AC_Candles[cCalc + 1].High
+            && AC_Candles[cCalc].Close < AC_Candles[cCalc + 2].Open
+            && AC_Candles[cCalc + 1].Close > AC_Candles[cCalc + 2].Close)
+            || 
+               (AC_Candles[cCalc].High < AC_Candles[cCalc + 1].High
+            && AC_Candles[cCalc + 2].Open < AC_Candles[cCalc].Open))){
+               TimeCheck();
+            }
+         //Morning
+            else if(AC_Candles[cCalc].CandleType == "Bullish"
+            && AC_Candles[cCalc + 2].CandleType == "Bearish"
+            
+            && ((AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
+            && AC_Candles[cCalc + 1].Close < AC_Candles[cCalc + 2].Close)
+            ||
+               (AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
+            && AC_Candles[cCalc + 2].Open > AC_Candles[cCalc].Open))){
+               TimeCheck();
+            }
+}
+void ActivePreChecker(){
+//Get Info of First 3 Candles
+  CandleInfo(0);
+  CandleInfo(1);
+  CandleInfo(2);
+  
+//Use Calculations & Predict
+CandleCalculations();
+}
+//Liquidity Hit & Pre Pattern Checker
+void LH_PatternPreChecker(){
+   if(LiquidityHit_Fr_DownSide || LiquidityHit_Fr_UpSide) {
+      ActivePreChecker();
+   }
+}
 void OnTick(){
+   LH_PatternPreChecker();
    CPS();
    Liquidity();
    if(LiquidityInfoProcess_ && CandleInfoProcess_ && CandleInfoDisplay_ && !CleanUp){
