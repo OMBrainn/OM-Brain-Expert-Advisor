@@ -517,35 +517,164 @@ void CleanUpDisplay(){
       CleanUp = false;
    }
 }
+//Pattern Pre Timer
+struct TimeFractor {
+   string TimeFrame;
+   //00:11
+   int PointInTimes_mm[];
+   //11:00
+   int PointInTimes_hh[];
+};
+TimeFractor TF_PIT[3];
+void TimeSettings(){
+//0 = 5M, 1 = 15M, 2 = 4H
+   //5M
+   TF_PIT[0].TimeFrame = "5M";
+      //Minute
+      ArrayResize(TF_PIT[0].PointInTimes_mm, 4);
+      TF_PIT[0].PointInTimes_mm[0] = 3;
+      TF_PIT[0].PointInTimes_mm[1] = 4;
+      TF_PIT[0].PointInTimes_mm[2] = 8;
+      TF_PIT[0].PointInTimes_mm[3] = 9;
+   //15M
+   TF_PIT[1].TimeFrame = "15M";
+      //Minute
+      ArrayResize(TF_PIT[1].PointInTimes_mm, 8);
+      TF_PIT[1].PointInTimes_mm[0] = 13;
+      TF_PIT[1].PointInTimes_mm[1] = 14;
+      TF_PIT[1].PointInTimes_mm[2] = 28;
+      TF_PIT[1].PointInTimes_mm[3] = 29;
+      TF_PIT[1].PointInTimes_mm[0] = 43;
+      TF_PIT[1].PointInTimes_mm[1] = 44;
+      TF_PIT[1].PointInTimes_mm[2] = 28;
+      TF_PIT[1].PointInTimes_mm[3] = 29;
+   //4H
+   TF_PIT[2].TimeFrame = "4H";
+      //Minute
+      ArrayResize(TF_PIT[2].PointInTimes_mm, 4);
+      TF_PIT[2].PointInTimes_mm[0] = 56;
+      TF_PIT[2].PointInTimes_mm[1] = 57;
+      TF_PIT[2].PointInTimes_mm[2] = 58;
+      TF_PIT[2].PointInTimes_mm[3] = 59;
+      //Hour
+      ArrayResize(TF_PIT[2].PointInTimes_hh, 6);
+      TF_PIT[2].PointInTimes_hh[0] = 03;
+      TF_PIT[2].PointInTimes_hh[1] = 07;
+      TF_PIT[2].PointInTimes_hh[2] = 11;
+      TF_PIT[2].PointInTimes_hh[3] = 15;
+      TF_PIT[2].PointInTimes_hh[4] = 19;
+      TF_PIT[2].PointInTimes_hh[5] = 23;
+}
 
-//Pattern Pre Checker
 bool timeLock = false;
 int CurrentPIT;
+int TF = 0;
 void TimeCheck(){
    if(!timeLock){
-      if(PointInTime() == 3
-      || PointInTime() == 4
-      || PointInTime() == 8
-      || PointInTime() == 9) { 
-         Print(PointInTime());
-         PlaySound ("alert2.wav");
-         SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
-         CurrentPIT = PointInTime();
-         timeLock = true;
+      for(TF;TF<ArraySize(TF_PIT);TF++) {
+         if(TF_PIT[TF].TimeFrame == TimeFrame) {
+            _4H();
+         }
+         if(TF_PIT[TF].TimeFrame == TimeFrame){
+            _5M();
+         }
+         if(TF_PIT[TF].TimeFrame == TimeFrame) {
+            _15M();
+         }
+      }
+      if(TF == ArraySize(TF_PIT)-1 || TF > ArraySize(TF_PIT)-1){
+         TF = 0;
       }
    }
    if(timeLock){
-      if(CurrentPIT != PointInTime()){
+      if(CurrentPIT != PointInTime_m()){
          timeLock = false;
       }
    }
 }
-int PointInTime(){
+//Seperate Functions that will Check PointInTimes Per TimeFrame
+int TF5 = 0;
+void _5M(){
+   for(TF5;TF5<ArraySize(TF_PIT[0].PointInTimes_mm);TF5++) {
+      if(PointInTime_mm() == TF_PIT[0].PointInTimes_mm[TF5]) {
+         Print(TF_PIT[0].TimeFrame);
+         Print(TF_PIT[0].PointInTimes_mm[TF5]);
+         PlaySound ("alert2.wav");
+         SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
+         CurrentPIT = PointInTime_m();
+         timeLock = true;
+      }
+   }
+   if(TF5 == ArraySize(TF_PIT[0].PointInTimes_mm)-1 || TF5 > ArraySize(TF_PIT[0].PointInTimes_mm)-1){
+         TF5 = 0;
+   }
+}
+int TF15 = 0;
+void _15M(){
+   for(TF15;TF15<ArraySize(TF_PIT[1].PointInTimes_mm);TF15++) {
+      if(PointInTime_m() == TF_PIT[1].PointInTimes_mm[TF15]) {
+         Print(TF_PIT[1].TimeFrame);
+         Print(TF_PIT[1].PointInTimes_mm[TF15]);
+         PlaySound ("alert2.wav");
+         SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
+         CurrentPIT = PointInTime_m();
+         timeLock = true;
+      }
+   }
+   if(TF15 == ArraySize(TF_PIT[1].PointInTimes_mm)-1 || TF15 > ArraySize(TF_PIT[1].PointInTimes_mm)-1){
+         TF15 = 0;
+   }
+}
+int TF4_hh = 0;
+int TF4_mm = 0;
+void _4H(){
+   for(TF4_hh;TF4_hh<ArraySize(TF_PIT[2].PointInTimes_hh);TF4_hh++) {
+      if(PointInTime_hh() == TF_PIT[2].PointInTimes_hh[TF4_hh]) {
+         _4H_mm();
+      }
+   }
+   if(TF4_hh == ArraySize(TF_PIT[2].PointInTimes_hh)-1 || TF4_hh > ArraySize(TF_PIT[2].PointInTimes_hh)-1){
+         TF4_hh = 0;
+   }
+}
+void _4H_mm(){
+   for(TF4_mm;TF4_mm<ArraySize(TF_PIT[2].PointInTimes_mm);TF4_mm++) {
+      if(PointInTime_m() == TF_PIT[2].PointInTimes_mm[TF4_mm]) {
+            Print(TF_PIT[2].TimeFrame);
+            Print(PointInTime_m());
+            PlaySound ("alert2.wav");
+            SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
+            CurrentPIT = PointInTime_m();
+            timeLock = true;
+      }
+   }
+   if(TF4_mm == ArraySize(TF_PIT[2].PointInTimes_mm)-1 || TF4_mm > ArraySize(TF_PIT[2].PointInTimes_mm)-1){
+         TF4_mm = 0;
+   }
+}
+//Functions that check specific parts of time
+//00:01 (Mainly for 5M)
+int PointInTime_mm(){
    string Time = "" + TimeToString(TimeCurrent(),TIME_MINUTES);
    string PointInTime_str = StringSubstr(Time,4,3);
    int PointInTime_int = StringToInteger(PointInTime_str);
    return PointInTime_int;
 }
+//00:11 (Mainly for 15M)
+int PointInTime_m(){
+   string Time = "" + TimeToString(TimeCurrent(),TIME_MINUTES);
+   string PointInTime_str = StringSubstr(Time,3,2);
+   int PointInTime_int = StringToInteger(PointInTime_str);
+   return PointInTime_int;
+}
+//11:11 (Mainly for 4H)
+int PointInTime_hh(){
+   string Time = "" + TimeToString(TimeCurrent(),TIME_MINUTES);
+   string PointInTime_str = StringSubstr(Time,0,2);
+   int PointInTime_int = StringToInteger(PointInTime_str);
+   return PointInTime_int;
+}
+//Pattern Preparer
 HCandles AC_Candles[3]; 
 void CandleInfo(int RCN){
 //Get Open and Close Info
@@ -633,8 +762,9 @@ void LH_PatternPreChecker(){
    if(LiquidityHit_Fr_DownSide || LiquidityHit_Fr_UpSide) {
       ActivePreChecker();
    }
-} 
+}
 void OnTick(){
+   TimeSettings();
    LH_PatternPreChecker();
    CPS();
    Liquidity();
