@@ -577,6 +577,9 @@ void TimeCheck(){
       else if(TimeFrame == "4H") {
          _4H();
       }
+      else if(TimeFrame == "30M") {
+         _30M();
+      } 
       timeLock = true;
    }
    if(timeLock){
@@ -616,6 +619,22 @@ void _15M(){
    }
    if(TF15 == ArraySize(TF_PIT[1].PointInTimes_mm)-1 || TF15 > ArraySize(TF_PIT[1].PointInTimes_mm)-1){
          TF15 = 0;
+   }
+}
+int TF30 = 0;
+void _30M(){
+   for(TF30;TF30<ArraySize(TF_PIT[3].PointInTimes_mm);TF30++) {
+      if(PointInTime_m() == TF_PIT[3].PointInTimes_mm[TF30]) {
+         Print(TF_PIT[3].TimeFrame);
+         Print(TF_PIT[3].PointInTimes_mm[TF30]);
+         PlaySound ("alert2.wav");
+         SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
+         CurrentPIT = PointInTime_m();
+         timeLock = true;
+      }
+   }
+   if(TF30 == ArraySize(TF_PIT[3].PointInTimes_mm)-1 || TF30 > ArraySize(TF_PIT[3].PointInTimes_mm)-1){
+         TF30 = 0;
    }
 }
 int TF4_hh = 0;

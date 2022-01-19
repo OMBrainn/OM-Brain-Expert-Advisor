@@ -525,9 +525,9 @@ struct TimeFractor {
    //11:00
    int PointInTimes_hh[];
 };
-TimeFractor TF_PIT[3];
+TimeFractor TF_PIT[4];
 void TimeSettings(){
-//0 = 5M, 1 = 15M, 2 = 4H
+//0 = 5M, 1 = 15M, 2 = 4H, 3
    //5M
       //Minute
       ArrayResize(TF_PIT[0].PointInTimes_mm, 4);
@@ -561,6 +561,13 @@ void TimeSettings(){
       TF_PIT[2].PointInTimes_hh[3] = 15;
       TF_PIT[2].PointInTimes_hh[4] = 19;
       TF_PIT[2].PointInTimes_hh[5] = 23;
+   //30M
+      //Minute
+      ArrayResize(TF_PIT[3].PointInTimes_mm, 4);
+      TF_PIT[3].PointInTimes_mm[0] = 28;
+      TF_PIT[3].PointInTimes_mm[1] = 29;
+      TF_PIT[3].PointInTimes_mm[2] = 58;
+      TF_PIT[3].PointInTimes_mm[3] = 59;
 }
 
 bool timeLock = false;
@@ -575,6 +582,9 @@ void TimeCheck(){
       }
       else if(TimeFrame == "4H") {
          _4H();
+      }
+      else if(TimeFrame == "30M") {
+         _30M();
       }
       timeLock = true;
    }
@@ -617,6 +627,22 @@ void _15M(){
          TF15 = 0;
    }
 }
+int TF30 = 0;
+void _30M(){
+   for(TF30;TF30<ArraySize(TF_PIT[3].PointInTimes_mm);TF30++) {
+      if(PointInTime_m() == TF_PIT[3].PointInTimes_mm[TF30]) {
+         Print(TF_PIT[3].TimeFrame);
+         Print(TF_PIT[3].PointInTimes_mm[TF30]);
+         PlaySound ("alert2.wav");
+         SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
+         CurrentPIT = PointInTime_m();
+         timeLock = true;
+      }
+   }
+   if(TF30 == ArraySize(TF_PIT[3].PointInTimes_mm)-1 || TF30 > ArraySize(TF_PIT[3].PointInTimes_mm)-1){
+         TF30 = 0;
+   }
+} 
 int TF4_hh = 0;
 int TF4_mm = 0;
 void _4H(){
