@@ -529,7 +529,6 @@ TimeFractor TF_PIT[3];
 void TimeSettings(){
 //0 = 5M, 1 = 15M, 2 = 4H
    //5M
-   TF_PIT[0].TimeFrame = "5M";
       //Minute
       ArrayResize(TF_PIT[0].PointInTimes_mm, 4);
       TF_PIT[0].PointInTimes_mm[0] = 3;
@@ -537,7 +536,6 @@ void TimeSettings(){
       TF_PIT[0].PointInTimes_mm[2] = 8;
       TF_PIT[0].PointInTimes_mm[3] = 9;
    //15M
-   TF_PIT[1].TimeFrame = "15M";
       //Minute
       ArrayResize(TF_PIT[1].PointInTimes_mm, 8);
       TF_PIT[1].PointInTimes_mm[0] = 13;
@@ -549,7 +547,6 @@ void TimeSettings(){
       TF_PIT[1].PointInTimes_mm[2] = 28;
       TF_PIT[1].PointInTimes_mm[3] = 29;
    //4H
-   TF_PIT[2].TimeFrame = "4H";
       //Minute
       ArrayResize(TF_PIT[2].PointInTimes_mm, 4);
       TF_PIT[2].PointInTimes_mm[0] = 56;
@@ -572,14 +569,17 @@ int TF = 0;
 void TimeCheck(){
    if(!timeLock){
       for(TF;TF<ArraySize(TF_PIT);TF++) {
-         if(TF_PIT[TF].TimeFrame == TimeFrame) {
-            _4H();
-         }
-         if(TF_PIT[TF].TimeFrame == TimeFrame){
+         if(TimeFrame == "5M"){
             _5M();
+            timeLock = true;
          }
-         if(TF_PIT[TF].TimeFrame == TimeFrame) {
+         else if(TimeFrame == "15M") {
             _15M();
+            timeLock = true;
+         }
+         else if(TimeFrame == "4H") {
+            _4H();
+            timeLock = true;
          }
       }
       if(TF == ArraySize(TF_PIT)-1 || TF > ArraySize(TF_PIT)-1){
@@ -590,7 +590,7 @@ void TimeCheck(){
       if(CurrentPIT != PointInTime_m()){
          timeLock = false;
       }
-   }
+   } 
 }
 //Seperate Functions that will Check PointInTimes Per TimeFrame
 int TF5 = 0;

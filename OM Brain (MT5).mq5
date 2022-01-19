@@ -570,14 +570,17 @@ int TF = 0;
 void TimeCheck(){
    if(!timeLock){
       for(TF;TF<ArraySize(TF_PIT);TF++) {
-         if(TF_PIT[TF].TimeFrame == TimeFrame) {
-            _4H();
-         }
-         if(TF_PIT[TF].TimeFrame == TimeFrame){
+         if(TimeFrame == "5M"){
             _5M();
+            timeLock = true;
          }
-         if(TF_PIT[TF].TimeFrame == TimeFrame) {
+         else if(TimeFrame == "15M") {
             _15M();
+            timeLock = true;
+         }
+         else if(TimeFrame == "4H") {
+            _4H();
+            timeLock = true;
          }
       }
       if(TF == ArraySize(TF_PIT)-1 || TF > ArraySize(TF_PIT)-1){
@@ -589,7 +592,7 @@ void TimeCheck(){
          timeLock = false;
       }
    }
-}
+} 
 //Seperate Functions that will Check PointInTimes Per TimeFrame
 int TF5 = 0;
 void _5M(){
