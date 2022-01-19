@@ -565,33 +565,25 @@ void TimeSettings(){
 
 bool timeLock = false;
 int CurrentPIT;
-int TF = 0;
 void TimeCheck(){
    if(!timeLock){
-      for(TF;TF<ArraySize(TF_PIT);TF++) {
-         if(TimeFrame == "5M"){
-            _5M();
-            timeLock = true;
-         }
-         else if(TimeFrame == "15M") {
-            _15M();
-            timeLock = true;
-         }
-         else if(TimeFrame == "4H") {
-            _4H();
-            timeLock = true;
-         }
+      if(TimeFrame == "5M"){
+         _5M();
       }
-      if(TF == ArraySize(TF_PIT)-1 || TF > ArraySize(TF_PIT)-1){
-         TF = 0;
+      else if(TimeFrame == "15M") {
+         _15M();
       }
+      else if(TimeFrame == "4H") {
+         _4H();
+      }
+      timeLock = true;
    }
    if(timeLock){
       if(CurrentPIT != PointInTime_m()){
          timeLock = false;
       }
    } 
-}
+} 
 //Seperate Functions that will Check PointInTimes Per TimeFrame
 int TF5 = 0;
 void _5M(){
