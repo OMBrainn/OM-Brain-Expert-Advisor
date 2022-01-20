@@ -599,11 +599,7 @@ int TF5 = 0;
 void _5M(){
    for(TF5;TF5<ArraySize(TF_PIT[0].PointInTimes_mm);TF5++) {
       if(PointInTime_mm() == TF_PIT[0].PointInTimes_mm[TF5]) {
-         Print(TF_PIT[0].TimeFrame);
-         Print(TF_PIT[0].PointInTimes_mm[TF5]);
-         PlaySound ("alert2.wav");
-         SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
-         CurrentPIT = PointInTime_m();
+         RingLock = true;
          timeLock = true;
       }
    }
@@ -615,11 +611,7 @@ int TF15 = 0;
 void _15M(){
    for(TF15;TF15<ArraySize(TF_PIT[1].PointInTimes_mm);TF15++) {
       if(PointInTime_m() == TF_PIT[1].PointInTimes_mm[TF15]) {
-         Print(TF_PIT[1].TimeFrame);
-         Print(TF_PIT[1].PointInTimes_mm[TF15]);
-         PlaySound ("alert2.wav");
-         SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
-         CurrentPIT = PointInTime_m();
+         RingLock = true;
          timeLock = true;
       }
    }
@@ -631,18 +623,14 @@ int TF30 = 0;
 void _30M(){
    for(TF30;TF30<ArraySize(TF_PIT[3].PointInTimes_mm);TF30++) {
       if(PointInTime_m() == TF_PIT[3].PointInTimes_mm[TF30]) {
-         Print(TF_PIT[3].TimeFrame);
-         Print(TF_PIT[3].PointInTimes_mm[TF30]);
-         PlaySound ("alert2.wav");
-         SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
-         CurrentPIT = PointInTime_m();
+         RingLock = true;
          timeLock = true;
       }
    }
    if(TF30 == ArraySize(TF_PIT[3].PointInTimes_mm)-1 || TF30 > ArraySize(TF_PIT[3].PointInTimes_mm)-1){
          TF30 = 0;
    }
-} 
+}
 int TF4_hh = 0;
 int TF4_mm = 0;
 void _4H(){
@@ -658,16 +646,24 @@ void _4H(){
 void _4H_mm(){
    for(TF4_mm;TF4_mm<ArraySize(TF_PIT[2].PointInTimes_mm);TF4_mm++) {
       if(PointInTime_m() == TF_PIT[2].PointInTimes_mm[TF4_mm]) {
-            Print(TF_PIT[2].TimeFrame);
-            Print(PointInTime_m());
-            PlaySound ("alert2.wav");
-            SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
-            CurrentPIT = PointInTime_m();
+            RingLock = true;
             timeLock = true;
       }
    }
    if(TF4_mm == ArraySize(TF_PIT[2].PointInTimes_mm)-1 || TF4_mm > ArraySize(TF_PIT[2].PointInTimes_mm)-1){
          TF4_mm = 0;
+   }
+}
+bool RingLock = false;
+bool RingConnectionLock = false;
+void Ringer(){
+   if(RingLock && !RingConnectionLock){
+      Print(TimeFrame);
+      Print(PointInTime_hh());
+      PlaySound ("alert2.wav");
+      SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
+      CurrentPIT = PointInTime_m();
+      RingConnectionLock = true;
    }
 }
 //Functions that check specific parts of time
