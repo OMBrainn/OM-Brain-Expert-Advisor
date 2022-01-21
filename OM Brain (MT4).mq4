@@ -806,10 +806,58 @@ void CandleCalculations(){
                && AC_Candles[cCalc + 2].Open < AC_Candles[cCalc].Open))){
                   TimeCheck();
                }
-            } 
+            }
+         }
+         if(Continue_ && Direction == "Sell"){
+            //Bearish Engulfing
+               if((AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
+                  || AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
+                  || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
+               && AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].High
+               && AC_Candles[cCalc].Close < AC_Candles[cCalc + 1].Open
+               && AC_Candles[cCalc].CandleType == "Bearish"
+               && AC_Candles[cCalc + 1].CandleType == "Bullish"){
+                  TimeCheck();
+               }
+            //Evening Star
+               else if(AC_Candles[cCalc].CandleType == "Bearish"
+               && AC_Candles[cCalc + 2].CandleType == "Bullish"
+               
+               && ((AC_Candles[cCalc].High < AC_Candles[cCalc + 1].High
+               && AC_Candles[cCalc].Close < AC_Candles[cCalc + 2].Open
+               && AC_Candles[cCalc + 1].Close > AC_Candles[cCalc + 2].Close)
+               || 
+                  (AC_Candles[cCalc].High < AC_Candles[cCalc + 1].High
+               && AC_Candles[cCalc + 2].Open < AC_Candles[cCalc].Open))){
+                  TimeCheck();
+               }
+         }
+         else if(Continue_ && Direction == "Buy"){
+            //Bullish Engulfing
+               if((AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
+                  || AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
+                  || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
+                  
+               && AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Low 
+               && AC_Candles[cCalc].Close > AC_Candles[cCalc + 1].Open
+               && AC_Candles[cCalc].CandleType == "Bullish"
+               && AC_Candles[cCalc + 1].CandleType == "Bearish"){
+                  TimeCheck();
+               }
+            //Morning
+               else if(AC_Candles[cCalc].CandleType == "Bullish"
+               && AC_Candles[cCalc + 2].CandleType == "Bearish"
+               
+               && ((AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
+               && AC_Candles[cCalc + 1].Close < AC_Candles[cCalc + 2].Close)
+               ||
+                  (AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
+               && AC_Candles[cCalc + 2].Open > AC_Candles[cCalc].Open))){
+                  TimeCheck();
+               }
          }
          
-}
+}  
 void ActivePreChecker(){
 //Get Info of First 3 Candles
   CandleInfo(0);
