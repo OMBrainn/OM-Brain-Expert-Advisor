@@ -590,6 +590,8 @@ void TimeCheck(){
    }
    if(timeLock){
       if(CurrentPIT != PointInTime_m()){
+         RingLock = false;
+         RingConnectionLock = false;
          timeLock = false;
       }
    } 
