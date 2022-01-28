@@ -462,6 +462,12 @@ void OnChartEvent(const int EventID,      //Event Event ID
          SendNotification(_Symbol + " " + Direction + " Direction Set");
          MessageBox(_Symbol + " " + Direction + " Direction Set");
       }
+      else if(ShortToString(KeyThatWasPressed) == "o") {
+         Direction = "";
+         Continue_ = false;
+         SendNotification(_Symbol + " Direction Set Off"); 
+         MessageBox(_Symbol + " Direction Set Off"); 
+      }
       if(ShortToString(KeyThatWasPressed) == "c" && !Continue_) {
          
          MessageBox(_Symbol + " " + "Continue Alerts On");
@@ -590,9 +596,6 @@ void TimeCheck(){
    }
    if(timeLock){
       if(CurrentPIT != PointInTime_m()){
-         TF5 = 0;
-         TF15 = 0;
-         TF30 = 0;
          timeLock = false;
       }
    } 
@@ -600,46 +603,52 @@ void TimeCheck(){
 //Seperate Functions that will Check PointInTimes Per TimeFrame
 int TF5 = 0;
 void _5M(){
-   while(TF5 < ArraySize(TF_PIT[0].PointInTimes_mm)-1) {
+   for(TF5;TF5<ArraySize(TF_PIT[0].PointInTimes_mm);TF5++) {
       if(PointInTime_mm() == TF_PIT[0].PointInTimes_mm[TF5]) {
          Print(TF_PIT[0].TimeFrame);
          Print(TF_PIT[0].PointInTimes_mm[TF5]);
          PlaySound ("alert2.wav");
          SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
          CurrentPIT = PointInTime_m();
-         TF5++;
          timeLock = true;
       }
+   }
+   if(TF5 == ArraySize(TF_PIT[0].PointInTimes_mm)-1 || TF5 > ArraySize(TF_PIT[0].PointInTimes_mm)-1){
+         TF5 = 0;
    }
 }
 int TF15 = 0;
 void _15M(){
-   while(TF15 < ArraySize(TF_PIT[1].PointInTimes_mm) -1) {
+   for(TF15;TF15<ArraySize(TF_PIT[1].PointInTimes_mm);TF15++) {
       if(PointInTime_m() == TF_PIT[1].PointInTimes_mm[TF15]) {
          Print(TF_PIT[1].TimeFrame);
          Print(TF_PIT[1].PointInTimes_mm[TF15]);
          PlaySound ("alert2.wav");
          SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
          CurrentPIT = PointInTime_m();
-         TF15++;
          timeLock = true;
       }
+   }
+   if(TF15 == ArraySize(TF_PIT[1].PointInTimes_mm)-1 || TF15 > ArraySize(TF_PIT[1].PointInTimes_mm)-1){
+         TF15 = 0;
    }
 }
 int TF30 = 0;
 void _30M(){
-   while(TF30 < ArraySize(TF_PIT[3].PointInTimes_mm)-1) {
+   for(TF30;TF30<ArraySize(TF_PIT[3].PointInTimes_mm);TF30++) {
       if(PointInTime_m() == TF_PIT[3].PointInTimes_mm[TF30]) {
          Print(TF_PIT[3].TimeFrame);
          Print(TF_PIT[3].PointInTimes_mm[TF30]);
          PlaySound ("alert2.wav");
          SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
          CurrentPIT = PointInTime_m();
-         TF30++;
          timeLock = true;
       }
    }
-}
+   if(TF30 == ArraySize(TF_PIT[3].PointInTimes_mm)-1 || TF30 > ArraySize(TF_PIT[3].PointInTimes_mm)-1){
+         TF30 = 0;
+   }
+} 
 int TF4_hh = 0;
 int TF4_mm = 0;
 void _4H(){
@@ -798,5 +807,6 @@ void OnTick(){
     "W = Open Alert Window \n" +
     "N = Neutral (Both Directions) \n" +
     "B = Buy (Bullish Direction) \n" +
-    "S = Sell (Bearish Direction)");
+    "S = Sell (Bearish Direction)\n" +
+    "O = Off (Direction Alert Off)");
 }

@@ -460,6 +460,12 @@ void OnChartEvent(const int EventID,      //Event Event ID
          SendNotification(_Symbol + " " + Direction + " Direction Set"); 
          MessageBox(_Symbol + " " + Direction + " Direction Set");
       }
+      else if(ShortToString(KeyThatWasPressed) == "o") {
+         Direction = "";
+         Continue_ = false;
+         SendNotification(_Symbol + " Direction Set Off"); 
+         MessageBox(_Symbol + " Direction Set Off"); 
+      }
       if(ShortToString(KeyThatWasPressed) == "c" && !Continue_) {
          
          MessageBox(_Symbol + " " + "Continue Alerts On");
@@ -579,59 +585,62 @@ void TimeCheck(){
       }
       else if(TimeFrame == "30M") {
          _30M();
-      }
+      } 
       timeLock = true;
    }
    if(timeLock){
       if(CurrentPIT != PointInTime_m()){
-         TF5 = 0;
-         TF15 = 0;
-         TF30 = 0;
          timeLock = false;
       }
-   } 
-} 
+   }
+}
 //Seperate Functions that will Check PointInTimes Per TimeFrame
 int TF5 = 0;
 void _5M(){
-   while(TF5 < ArraySize(TF_PIT[0].PointInTimes_mm)-1) {
+   for(TF5;TF5<ArraySize(TF_PIT[0].PointInTimes_mm);TF5++) {
       if(PointInTime_mm() == TF_PIT[0].PointInTimes_mm[TF5]) {
          Print(TF_PIT[0].TimeFrame);
          Print(TF_PIT[0].PointInTimes_mm[TF5]);
          PlaySound ("alert2.wav");
          SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
          CurrentPIT = PointInTime_m();
-         TF5++;
          timeLock = true;
       }
+   }
+   if(TF5 == ArraySize(TF_PIT[0].PointInTimes_mm)-1 || TF5 > ArraySize(TF_PIT[0].PointInTimes_mm)-1){
+         TF5 = 0;
    }
 }
 int TF15 = 0;
 void _15M(){
-   while(TF15 < ArraySize(TF_PIT[1].PointInTimes_mm) -1) {
+   for(TF15;TF15<ArraySize(TF_PIT[1].PointInTimes_mm);TF15++) {
       if(PointInTime_m() == TF_PIT[1].PointInTimes_mm[TF15]) {
          Print(TF_PIT[1].TimeFrame);
          Print(TF_PIT[1].PointInTimes_mm[TF15]);
          PlaySound ("alert2.wav");
          SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
          CurrentPIT = PointInTime_m();
-         TF15++;
          timeLock = true;
       }
+   }
+   if(TF15 == ArraySize(TF_PIT[1].PointInTimes_mm)-1 || TF15 > ArraySize(TF_PIT[1].PointInTimes_mm)-1){
+         TF15 = 0;
    }
 }
 int TF30 = 0;
 void _30M(){
-   while(TF30 < ArraySize(TF_PIT[3].PointInTimes_mm)-1) {
+   for(TF30;TF30<ArraySize(TF_PIT[3].PointInTimes_mm);TF30++) {
       if(PointInTime_m() == TF_PIT[3].PointInTimes_mm[TF30]) {
          Print(TF_PIT[3].TimeFrame);
          Print(TF_PIT[3].PointInTimes_mm[TF30]);
          PlaySound ("alert2.wav");
          SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
          CurrentPIT = PointInTime_m();
-         TF30++;
          timeLock = true;
       }
+   }
+   if(TF30 == ArraySize(TF_PIT[3].PointInTimes_mm)-1 || TF30 > ArraySize(TF_PIT[3].PointInTimes_mm)-1){
+         TF30 = 0;
    }
 }
 int TF4_hh = 0;
@@ -649,24 +658,16 @@ void _4H(){
 void _4H_mm(){
    for(TF4_mm;TF4_mm<ArraySize(TF_PIT[2].PointInTimes_mm);TF4_mm++) {
       if(PointInTime_m() == TF_PIT[2].PointInTimes_mm[TF4_mm]) {
-            RingLock = true;
+            Print(TF_PIT[2].TimeFrame);
+            Print(PointInTime_m());
+            PlaySound ("alert2.wav");
+            SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
+            CurrentPIT = PointInTime_m();
             timeLock = true;
       }
    }
    if(TF4_mm == ArraySize(TF_PIT[2].PointInTimes_mm)-1 || TF4_mm > ArraySize(TF_PIT[2].PointInTimes_mm)-1){
          TF4_mm = 0;
-   }
-}
-bool RingLock = false;
-bool RingConnectionLock = false;
-void Ringer(){
-   if(RingLock && !RingConnectionLock){
-      Print(TimeFrame);
-      Print(PointInTime_hh());
-      PlaySound ("alert2.wav");
-      SendNotification("<!$$!> " + _Symbol + " " + TimeFrame + " Possible Pattern");
-      CurrentPIT = PointInTime_m();
-      RingConnectionLock = true;
    }
 }
 //Functions that check specific parts of time
@@ -712,31 +713,7 @@ static int cCalc = 0;
 void CandleCalculations(){
    //Pattern? (PcCalced Patterned)
          if(LiquidityHit_Fr_UpSide) {
-            if(Direction == "Buy") {
-            //Bullish Engulfing
-               if((AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
-                  || AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
-                  || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
-                  
-               && AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Low 
-               && AC_Candles[cCalc].Close > AC_Candles[cCalc + 1].Open
-               && AC_Candles[cCalc].CandleType == "Bullish"
-               && AC_Candles[cCalc + 1].CandleType == "Bearish"){
-                  TimeCheck();
-               }
-            //Morning
-               else if(AC_Candles[cCalc].CandleType == "Bullish"
-               && AC_Candles[cCalc + 2].CandleType == "Bearish"
-               
-               && ((AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
-               && AC_Candles[cCalc + 1].Close < AC_Candles[cCalc + 2].Close)
-               ||
-                  (AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
-               && AC_Candles[cCalc + 2].Open > AC_Candles[cCalc].Open))){
-                  TimeCheck();
-               }
-            }
-            else if(Direction == "Both") {
+            if(Direction == "Buy" || Direction == "Both") {
             //Bullish Engulfing
                if((AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
                   || AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
@@ -762,7 +739,7 @@ void CandleCalculations(){
             }
          }
          if(LiquidityHit_Fr_DownSide) {
-            if(Direction == "Sell") {
+            if(Direction == "Sell" || Direction == "Both") {
             //Bearish Engulfing
                if((AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
                   || AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
@@ -786,81 +763,9 @@ void CandleCalculations(){
                   TimeCheck();
                }
             }
-            else if(Direction == "Both") {
-            //Bearish Engulfing
-               if((AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
-                  || AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
-                  || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
-               && AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].High
-               && AC_Candles[cCalc].Close < AC_Candles[cCalc + 1].Open
-               && AC_Candles[cCalc].CandleType == "Bearish"
-               && AC_Candles[cCalc + 1].CandleType == "Bullish"){
-                  TimeCheck();
-               }
-            //Evening Star
-               else if(AC_Candles[cCalc].CandleType == "Bearish"
-               && AC_Candles[cCalc + 2].CandleType == "Bullish"
-               
-               && ((AC_Candles[cCalc].High < AC_Candles[cCalc + 1].High
-               && AC_Candles[cCalc].Close < AC_Candles[cCalc + 2].Open
-               && AC_Candles[cCalc + 1].Close > AC_Candles[cCalc + 2].Close)
-               || 
-                  (AC_Candles[cCalc].High < AC_Candles[cCalc + 1].High
-               && AC_Candles[cCalc + 2].Open < AC_Candles[cCalc].Open))){
-                  TimeCheck();
-               }
-            }
-         }
-         if(Continue_ && Direction == "Sell"){
-            //Bearish Engulfing
-               if((AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
-                  || AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
-                  || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
-               && AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].High
-               && AC_Candles[cCalc].Close < AC_Candles[cCalc + 1].Open
-               && AC_Candles[cCalc].CandleType == "Bearish"
-               && AC_Candles[cCalc + 1].CandleType == "Bullish"){
-                  TimeCheck();
-               }
-            //Evening Star
-               else if(AC_Candles[cCalc].CandleType == "Bearish"
-               && AC_Candles[cCalc + 2].CandleType == "Bullish"
-               
-               && ((AC_Candles[cCalc].High < AC_Candles[cCalc + 1].High
-               && AC_Candles[cCalc].Close < AC_Candles[cCalc + 2].Open
-               && AC_Candles[cCalc + 1].Close > AC_Candles[cCalc + 2].Close)
-               || 
-                  (AC_Candles[cCalc].High < AC_Candles[cCalc + 1].High
-               && AC_Candles[cCalc + 2].Open < AC_Candles[cCalc].Open))){
-                  TimeCheck();
-               }
-         }
-         else if(Continue_ && Direction == "Buy"){
-            //Bullish Engulfing
-               if((AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
-                  || AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
-                  || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
-                  
-               && AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Low 
-               && AC_Candles[cCalc].Close > AC_Candles[cCalc + 1].Open
-               && AC_Candles[cCalc].CandleType == "Bullish"
-               && AC_Candles[cCalc + 1].CandleType == "Bearish"){
-                  TimeCheck();
-               }
-            //Morning
-               else if(AC_Candles[cCalc].CandleType == "Bullish"
-               && AC_Candles[cCalc + 2].CandleType == "Bearish"
-               
-               && ((AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
-               && AC_Candles[cCalc + 1].Close < AC_Candles[cCalc + 2].Close)
-               ||
-                  (AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
-               && AC_Candles[cCalc + 2].Open > AC_Candles[cCalc].Open))){
-                  TimeCheck();
-               }
          }
          
-} 
+}
 void ActivePreChecker(){
 //Get Info of First 3 Candles
   CandleInfo(0);
@@ -877,7 +782,6 @@ void LH_PatternPreChecker(){
    }
 }
 void OnTick(){
-   Ringer();
    TimeSettings();
    LH_PatternPreChecker();
    CPS();
@@ -896,5 +800,6 @@ void OnTick(){
     "W = Open Alert Window \n" +
     "N = Neutral (Both Directions) \n" +
     "B = Buy (Bullish Direction) \n" +
-    "S = Sell (Bearish Direction)");
+    "S = Sell (Bearish Direction)\n" +
+    "O = Off (Direction Alert Off)");
 }
