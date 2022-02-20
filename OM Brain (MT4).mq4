@@ -317,6 +317,7 @@ string LineName;
 static int LastCandleNumber;
 int OnInit()
   {
+   Init_Panel();
    LastCandleNumber = iBars(_Symbol,PERIOD_CURRENT);
    Print(_Symbol + " " + TimeFrame + " Started: " + TimeToString(TimeCurrent(),TIME_MINUTES));
    Alert(_Symbol + " " + TimeFrame + " Started: " + TimeToString(TimeCurrent(),TIME_MINUTES));
@@ -332,7 +333,9 @@ void CheckForNewCandle(int CandleNumber) {
          LastCandleNumber = CandleNumber;
    }
 }
-
+void OnDeinit(const int reason) {
+   OMB_E.Destroy(reason);
+}
 bool LiquidityHit_Fr_UpSide = false;
 bool LiquidityHit_Fr_DownSide = false;
 int c = 0;
@@ -482,6 +485,7 @@ void OnChartEvent(const int EventID,      //Event Event ID
          Alert("Window Opened");
       }
    }
+   NeoChartEvent(EventID, lparam, dparam, sparam);
 }
 /*<--Conditions-->*/
 void Conditions_N_Exe() {
@@ -729,6 +733,7 @@ void CandleCalculations(){
                && AC_Candles[cCalc].Close > AC_Candles[cCalc + 1].Open
                && AC_Candles[cCalc].CandleType == "Bullish"
                && AC_Candles[cCalc + 1].CandleType == "Bearish"){
+                  Pattern_OMB_E = "Bullish Engulfing";
                   TimeCheck();
                }
             //Morning
@@ -740,6 +745,7 @@ void CandleCalculations(){
                ||
                   (AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
                && AC_Candles[cCalc + 2].Open > AC_Candles[cCalc].Open))){
+                  Pattern_OMB_E = "Morning Star";
                   TimeCheck();
                }
             }
@@ -754,6 +760,7 @@ void CandleCalculations(){
                && AC_Candles[cCalc].Close < AC_Candles[cCalc + 1].Open
                && AC_Candles[cCalc].CandleType == "Bearish"
                && AC_Candles[cCalc + 1].CandleType == "Bullish"){
+                  Pattern_OMB_E = "Bearish Engulfing";
                   TimeCheck();
                }
             //Evening Star
@@ -766,6 +773,7 @@ void CandleCalculations(){
                || 
                   (AC_Candles[cCalc].High < AC_Candles[cCalc + 1].High
                && AC_Candles[cCalc + 2].Open < AC_Candles[cCalc].Open))){
+                  Pattern_OMB_E = "Evening Star";
                   TimeCheck();
                }
             }
@@ -802,11 +810,628 @@ void OnTick(){
    else if(LiquidityInfoProcess_ && CandleInfoProcess_ && CandleInfoDisplay_ && CleanUp && Conditions_Complete){
       CleanUpDisplay();
     }
-    
+    PatternCheck();
+    PanelDisplayUpdate();
+    /* <<<!!! IMPORTANT !!!>>>
     Comment("Keyboard Buttons \n" + 
     "W = Open Alert Window \n" +
     "N = Neutral (Both Directions) \n" +
     "B = Buy (Bullish Direction) \n" +
     "S = Sell (Bearish Direction)\n" +
-    "O = Off (Direction Alert Off)");
+    "O = Off (Direction Alert Off)");*/
+}
+#include <Controls\Dialog.mqh>
+#include <Controls\Button.mqh>
+#include <Controls\Edit.mqh>
+#include <Controls\Label.mqh>
+
+#define INDENT_LEFT (11)
+#define INDENT_TOP (1)
+#define CONTROLS_GAPS_X (5)
+#define BUTTON_WIDTH (100)
+#define BUTTON_HEIGHT (20)
+
+CAppDialog OMB_E;
+CButton Bull_Button;
+CButton Bear_Button;
+CLabel Pervious30M_Swing;
+
+CLabel ConsolidationRange_Label;
+CEdit TopRange_Edit;
+CEdit BottomRange_Edit;
+
+CLabel Overprice_Label;
+CEdit OverboughtP_Edit;
+CEdit OversoldP_Edit;
+
+CButton WorkReset_Button;
+
+CLabel VPA_Label;
+CButton VPA_Toggle;
+CLabel ChoppyPattern_Label;
+CButton ChoppyPattern_Button;
+
+CLabel TCL_Label;
+
+void Init_Panel() {
+   if(!OMB_E.Create(0, "O(M).Brain Execution",0,20,20,360,424))
+      return(INIT_FAILED);
+   //Swing Button Toggle
+   if(!CreateBull_Button())
+      return(false);
+   if(!CreateBear_Button())
+      return(false);
+   if(!OMB_E.Add(Bull_Button))
+      return(false);
+   if(!OMB_E.Add(Bear_Button))
+      return(false);
+   if(!Create_Pervious30M_Swing())
+      return(false);
+   if(!OMB_E.Add(Pervious30M_Swing))
+      return(false);
+   //Consolidation Range
+   if(!Create_ConsolidationRange_Label())
+      return(false);
+   if(!OMB_E.Add(ConsolidationRange_Label))
+      return(false);
+   if(!Create_TopRange_Edit())
+      return(false);
+   if(!OMB_E.Add(TopRange_Edit))
+      return(false);
+   if(!Create_BottomRange_Edit())
+      return(false);
+   if(!OMB_E.Add(BottomRange_Edit))
+      return(false);
+   
+   if(!Create_Overprice_Label())
+      return(false);
+   if(!OMB_E.Add(Overprice_Label))
+      return(false);
+   if(!Create_OverboughtP_Edit())
+      return(false);
+   if(!OMB_E.Add(OverboughtP_Edit))
+      return(false);
+   if(!Create_OversoldP_Edit())
+      return(false);
+   if(!OMB_E.Add(OversoldP_Edit))
+      return(false);
+   //Work Reset
+   if(!CreateWorkReset_Button())
+      return(false);
+   if(!OMB_E.Add(WorkReset_Button))
+      return(false);
+   //VPA & Choppy Pattern
+   if(!Create_VPA_Label())
+      return(false);
+   if(!OMB_E.Add(VPA_Label))
+      return(false);
+   if(!CreateVPA_Toggle())
+      return(false);
+   if(!OMB_E.Add(VPA_Toggle))
+      return(false);
+      
+   if(!Create_ChoppyPattern_Label())
+      return(false);
+   if(!OMB_E.Add(ChoppyPattern_Label))
+      return(false);
+   if(!CreateChoppyPattern_Button())
+      return(false);
+   if(!OMB_E.Add(ChoppyPattern_Button))
+      return(false);
+      
+   //TCL
+   if(!Create_TCL_Label())
+      return(false);
+   if(!OMB_E.Add(TCL_Label))
+      return(false);
+}
+bool CreateBull_Button(void) {
+   int x1=INDENT_LEFT;
+   int y1=INDENT_TOP + 20;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!Bull_Button.Create(0, "Bull", 0,x1,y1,x2,y2))
+      return(false);
+   if(!Bull_Button.Text("Bull"))
+      return(false);
+   if(!Bull_Button.ColorBackground(clrLime))
+      return(false);
+   if(!OMB_E.Add(Bull_Button))
+      return(false);
+      
+   return(true);
+}
+bool CreateBear_Button(void) {
+   int x1=INDENT_LEFT+ 156;
+   int y1=INDENT_TOP + 20;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!Bear_Button.Create(0, "Bear", 0,x1,y1,x2,y2))
+      return(false);
+   if(!Bear_Button.Text("Bear"))
+      return(false);
+   if(!Bear_Button.ColorBackground(clrRed))
+      return(false);
+   if(!Bear_Button.Color(clrWhite))
+      return(false);
+   if(!OMB_E.Add(Bear_Button))
+      return(false);
+   
+      
+   return(true);
+}
+bool Create_Pervious30M_Swing(void) {
+   int x1=INDENT_LEFT + 60;
+   int y1=INDENT_TOP;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!Pervious30M_Swing.Create(0, "Previous 30M Swing", 0,x1,y1,x2,y2))
+      return(false);
+   if(!Pervious30M_Swing.Text("<<Previous 30M Swing>>"))
+      return(false);
+   if(!OMB_E.Add(Pervious30M_Swing))
+      return(false);
+      
+   return(true);
+}
+bool Create_ConsolidationRange_Label(void) {
+   int x1=INDENT_LEFT + 60;
+   int y1=INDENT_TOP + 40;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!ConsolidationRange_Label.Create(0, "Consolidation Range", 0,x1,y1,x2,y2))
+      return(false);
+   if(!ConsolidationRange_Label.Text("<<Consolidation Range>>"))
+      return(false);
+   if(!OMB_E.Add(ConsolidationRange_Label))
+      return(false);
+      
+   return(true);
+}
+bool Create_TopRange_Edit(void) {
+   int x1=INDENT_LEFT;
+   int y1=INDENT_TOP + 60;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   if(!TopRange_Edit.Create(0, "Top Range", 0,x1,y1,x2,y2))
+      return(false);
+   if(!TopRange_Edit.Text("Top Range"))
+      return(false);
+   if(!TopRange_Edit.TextAlign(ALIGN_LEFT))
+      return(false);
+   if(!OMB_E.Add(TopRange_Edit))
+      return(false);
+      
+   return(true);
+}
+bool Create_BottomRange_Edit(void) {
+   int x1=INDENT_LEFT + 156;
+   int y1=INDENT_TOP + 60;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   if(!BottomRange_Edit.Create(0, "Bottom Range", 0,x1,y1,x2,y2))
+      return(false);
+   if(!BottomRange_Edit.Text("Bottom Range"))
+      return(false);
+   if(!BottomRange_Edit.TextAlign(ALIGN_LEFT))
+      return(false);
+   if(!OMB_E.Add(BottomRange_Edit))
+      return(false);
+      
+   return(true);
+}
+bool Create_Overprice_Label(void) {
+   int x1=INDENT_LEFT + 60;
+   int y1=INDENT_TOP + 80;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!Overprice_Label.Create(0, "Overprice Point", 0,x1,y1,x2,y2))
+      return(false);
+   if(!Overprice_Label.Text("<<OverPrice Points>>"))
+      return(false);
+   if(!OMB_E.Add(Overprice_Label))
+      return(false);
+      
+   return(true);
+}
+bool Create_OverboughtP_Edit(void) {
+   int x1=INDENT_LEFT;
+   int y1=INDENT_TOP + 100;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   if(!OverboughtP_Edit.Create(0, "Overbought Point", 0,x1,y1,x2,y2))
+      return(false);
+   if(!OverboughtP_Edit.Text("Overbought"))
+      return(false);
+   if(!OverboughtP_Edit.TextAlign(ALIGN_LEFT))
+      return(false);
+   if(!OMB_E.Add(OverboughtP_Edit))
+      return(false);
+      
+   return(true);
+}
+bool Create_OversoldP_Edit(void) {
+   int x1=INDENT_LEFT + 156;
+   int y1=INDENT_TOP + 100;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   if(!OversoldP_Edit.Create(0, "Oversold Point", 0,x1,y1,x2,y2))
+      return(false);
+   if(!OversoldP_Edit.Text("Oversold Point"))
+      return(false);
+   if(!OversoldP_Edit.TextAlign(ALIGN_LEFT))
+      return(false);
+   if(!OMB_E.Add(OversoldP_Edit))
+      return(false);
+      
+   return(true);
+}
+bool CreateWorkReset_Button(void) {
+   int x1=INDENT_LEFT + 80;
+   int y1=INDENT_TOP + 130;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!WorkReset_Button.Create(0, "Work Reset", 0,x1,y1,x2,y2))
+      return(false);
+   if(!WorkReset_Button.Text("Work Reset"))
+      return(false);
+   if(!WorkReset_Button.ColorBackground(clrPurple))
+      return(false);
+   if(!WorkReset_Button.Color(clrWhite))
+      return(false);
+   if(!OMB_E.Add(WorkReset_Button))
+      return(false);
+      
+   return(true);
+}
+bool Create_VPA_Label(void) {
+   int x1=INDENT_LEFT + 100;
+   int y1=INDENT_TOP + 150;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!VPA_Label.Create(0, "VPA", 0,x1,y1,x2,y2))
+      return(false);
+   if(!VPA_Label.Text("??VPA??"))
+      return(false);
+   if(!OMB_E.Add(VPA_Label))
+      return(false);
+      
+   return(true);
+}
+bool CreateVPA_Toggle(void) {
+   int x1=INDENT_LEFT + 80;
+   int y1=INDENT_TOP + 170;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!VPA_Toggle.Create(0, "VPA Toggle", 0,x1,y1,x2,y2))
+      return(false);
+   if(!VPA_Toggle.Text("None"))
+      return(false);
+   if(!VPA_Toggle.ColorBackground(clrCoral))
+      return(false);
+   if(!VPA_Toggle.Color(clrWhite))
+      return(false);
+   if(!OMB_E.Add(VPA_Toggle))
+      return(false);
+      
+   return(true);
+}
+bool Create_ChoppyPattern_Label(void) {
+   int x1=INDENT_LEFT + 80;
+   int y1=INDENT_TOP + 190;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!ChoppyPattern_Label.Create(0, "Choppy Pattern Label", 0,x1,y1,x2,y2))
+      return(false);
+   if(!ChoppyPattern_Label.Text("??Choppy Pattern??"))
+      return(false);
+   if(!OMB_E.Add(ChoppyPattern_Label))
+      return(false);
+      
+   return(true);
+}
+bool CreateChoppyPattern_Button(void) {
+   int x1=INDENT_LEFT + 80;
+   int y1=INDENT_TOP + 210;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!ChoppyPattern_Button.Create(0, "Choppy Pattern Button", 0,x1,y1,x2,y2))
+      return(false);
+   if(!ChoppyPattern_Button.Text("None"))
+      return(false);
+   if(!ChoppyPattern_Button.ColorBackground(clrCoral))
+      return(false);
+   if(!ChoppyPattern_Button.Color(clrWhite))
+      return(false);
+   if(!OMB_E.Add(ChoppyPattern_Button))
+      return(false);
+      
+   return(true);
+}
+bool Create_TCL_Label(void) {
+   int x1=INDENT_LEFT + 35;
+   int y1=INDENT_TOP + 250;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!TCL_Label.Create(0, "TCL_Label", 0,x1,y1,x2,y2))
+      return(false);
+   if(!TCL_Label.Text("[Pattern]: " + "??" + "[TCL]: " + "??"))
+      return(false);
+   if(!OMB_E.Add(TCL_Label))
+      return(false);
+      
+   return(true);
+}
+double VPA = 0;
+string Pre30Swing = "";
+int VPA_Toggle_int = 0;
+
+int ChoppyP_int = 0;
+double ChoppyP = 0;
+
+double TopRange_double;
+double BottomRange_double;
+double OversoldPoint;
+double OverboughtPoint;
+
+int LiquidityPoint = 0;
+
+int SwingCorrelationPoint = 0;
+
+string Pattern_OMB_E;
+
+void NeoChartEvent(const int id,
+                  const long& lparam,
+                  const double& dparam,
+                  const string& sparam) {
+   OMB_E.ChartEvent(id,lparam,dparam,sparam);
+   if(id==CHARTEVENT_OBJECT_CLICK){
+      if(sparam=="Bull"){
+         Pre30Swing = "Bullish";
+         PanelDisplayUpdate();
+         Print("Previous 30M Swing: Bull");
+      }
+      if(sparam=="Bear"){
+         Pre30Swing = "Bearish";
+         PanelDisplayUpdate();
+         Print("Previous 30M Swing: Bear");
+      }
+      if(sparam=="Work Reset"){
+         ConsolidationDisplay();
+         PanelDisplayUpdate();
+         Print("Swing and Consolidation Range Reset");
+      }
+      if(sparam=="VPA Toggle"){
+         VPA_ToggleFunc(VPA_Toggle_int);
+         PanelDisplayUpdate();
+      }
+      if(sparam=="Choppy Pattern Button"){
+         ChoppyP_ToggleFunc(ChoppyP_int);
+         PanelDisplayUpdate();
+      }
+   }
+   if(id==CHARTEVENT_OBJECT_ENDEDIT){
+      if(sparam=="Top Range") {
+         TopRange_double = TopRange_Edit.Text();
+         PanelDisplayUpdate();
+      }
+      if(sparam=="Bottom Range") {
+         BottomRange_double = BottomRange_Edit.Text();
+         PanelDisplayUpdate();
+      }
+      if(sparam=="Oversold Point") {
+         OversoldPoint = OversoldP_Edit.Text();
+         PanelDisplayUpdate();
+      }
+      if(sparam=="Overbought Point") {
+         OverboughtPoint = OverboughtP_Edit.Text();
+         PanelDisplayUpdate();
+      }
+   } 
+}
+void VPA_ToggleFunc(int i) {
+/*
+0 = Steady
+1 = S-Volatile
+2 = Volatile
+3 = Exhuastion
+*/
+   if(i == 0) {
+      VPA_Toggle.Text("Steady");
+      VPA = 0;
+   }
+   else if(i == 1) {
+      VPA_Toggle.Text("S-Volatile");
+      VPA = 2;
+   }
+   else if(i == 2) {
+      VPA_Toggle.Text("Volatile");
+      VPA = 3;
+   }
+   else if(i == 3) {
+      VPA_Toggle.Text("Exhuastion");
+      VPA = -5;
+      VPA_Toggle_int = -1;
+   }
+   VPA_Toggle_int++;
+}
+void ChoppyP_ToggleFunc(int i) {
+/*
+0 = Choppy
+1 = Not
+*/
+   if(i == 0) {
+      ChoppyPattern_Button.Text("Choppy");
+      ChoppyP = 0;
+   }
+   else if(i == 1) {
+      ChoppyPattern_Button.Text("Not");
+      ChoppyP_int = -1;
+      ChoppyP = 2;
+   }
+   ChoppyP_int++;
+}
+void ConsolidationDisplay() {
+   //Top Consolidation
+   string TopRange_LN = "Top Range";
+   ObjectDelete(_Symbol, TopRange_LN);
+   ObjectCreate(_Symbol, TopRange_LN, OBJ_HLINE,0,HCandles_[0].Time, TopRange_double);
+   ObjectSetInteger(0,TopRange_LN,OBJPROP_COLOR,clrPurple);
+   string OverboughtP_LN = "Overbought Point";
+   ObjectDelete(_Symbol, OverboughtP_LN);
+   ObjectCreate(_Symbol, OverboughtP_LN, OBJ_HLINE,0,NULL, OverboughtPoint);
+   ObjectSetInteger(0,OverboughtP_LN,OBJPROP_COLOR,clrPurple);
+   //Bottom Consolidation
+   string BottomRange_LN = "Bottom Range";
+   ObjectDelete(_Symbol, BottomRange_LN);
+   ObjectCreate(_Symbol, BottomRange_LN, OBJ_HLINE,0,HCandles_[0].Time, BottomRange_double);
+   ObjectSetInteger(0,BottomRange_LN,OBJPROP_COLOR,clrPurple);
+   string OversoldP_LN = "Oversold Point";
+   ObjectDelete(_Symbol, OversoldP_LN);
+   ObjectCreate(_Symbol, OversoldP_LN, OBJ_HLINE,0,HCandles_[0].Time, OversoldPoint);
+   ObjectSetInteger(0,OversoldP_LN,OBJPROP_COLOR,clrPurple);
+   
+}
+
+string IsOverPrice(double Price_) {
+   double Price = iClose(_Symbol, PERIOD_CURRENT, 0);
+   string result = "";
+   if(Price_ == NULL) {
+      if(Price >= OverboughtP_Edit.Text()) {
+         result = "Overbought";
+      }
+      else if(Price <= OversoldP_Edit.Text()) {
+         result = "Oversold";
+      }
+   }
+   else if(Price_ != NULL) {
+       if(Price_ >= OverboughtP_Edit.Text()) {
+         result = "Overbought";
+      }
+      else if(Price_ <= OversoldP_Edit.Text()) {
+         result = "Oversold";
+      }
+   }
+   return result;
+}
+int OverPrice_int;
+void IFOverPriced(string PatternDir) {
+      if(PatternDir == "Bullish") {
+         if(MathMin(MathMin(iLow(_Symbol, PERIOD_CURRENT, 0), iLow(_Symbol, PERIOD_CURRENT, 1)), iLow(_Symbol, PERIOD_CURRENT, 2)) < OversoldPoint) {
+            OverPrice_int = 1;
+         }
+         else {
+            OverPrice_int = 0;
+         }
+      }
+      else if(PatternDir == "Bearish") {
+         if(MathMax(MathMax(iHigh(_Symbol, PERIOD_CURRENT, 0), iHigh(_Symbol, PERIOD_CURRENT, 1)), iHigh(_Symbol, PERIOD_CURRENT, 3)) > OverboughtPoint) {
+            OverPrice_int = 1;
+         }
+         else {
+            OverPrice_int = 0;
+         }
+      }
+}
+
+void LiquidityPointCheck(string PatternDir) {
+   if(PatternDir == "Bearish") {
+      if(LiquidityHit_Fr_DownSide) {
+         LiquidityPoint = 1;
+      }
+      else if(!LiquidityHit_Fr_DownSide) {
+         LiquidityPoint = 0;
+      }
+   }
+   else if(PatternDir == "Bullish") {
+      if(LiquidityHit_Fr_UpSide) {
+         LiquidityPoint = 1;
+      }
+      else if(!LiquidityHit_Fr_UpSide) {
+         LiquidityPoint = 0;
+      }
+   }
+}
+
+void SwingCorrelationCheck(string PatternDir) {
+   if(PatternDir == Pre30Swing) {
+      SwingCorrelationPoint = 1;
+   }
+   else if(PatternDir != Pre30Swing) {
+      SwingCorrelationPoint = 0;
+   }
+}
+void PatternCheck() {
+            //Bullish Engulfing
+               if((AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
+                  || AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
+                  || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
+                  
+               && AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Low 
+               && AC_Candles[cCalc].Close > AC_Candles[cCalc + 1].Open
+               && AC_Candles[cCalc].CandleType == "Bullish"
+               && AC_Candles[cCalc + 1].CandleType == "Bearish"){
+                  IFOverPriced("Bullish");
+                  LiquidityPointCheck("Bullish");
+                  SwingCorrelationCheck("Bullish");
+               }
+            //Morning
+               else if(AC_Candles[cCalc].CandleType == "Bullish"
+               && AC_Candles[cCalc + 2].CandleType == "Bearish"
+               
+               && ((AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
+               && AC_Candles[cCalc + 1].Close < AC_Candles[cCalc + 2].Close)
+               ||
+                  (AC_Candles[cCalc].High > AC_Candles[cCalc + 1].High
+               && AC_Candles[cCalc + 2].Open > AC_Candles[cCalc].Open))){
+                  IFOverPriced("Bullish");
+                  LiquidityPointCheck("Bullish");
+                  SwingCorrelationCheck("Bullish");
+               }
+            //Bearish Engulfing
+               if((AC_Candles[cCalc].Open > AC_Candles[cCalc + 1].Close
+                  || AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].Close
+                  || AC_Candles[cCalc].Open == AC_Candles[cCalc + 1].Close)
+               && AC_Candles[cCalc].Open < AC_Candles[cCalc + 1].High
+               && AC_Candles[cCalc].Close < AC_Candles[cCalc + 1].Open
+               && AC_Candles[cCalc].CandleType == "Bearish"
+               && AC_Candles[cCalc + 1].CandleType == "Bullish"){
+                  IFOverPriced("Bearish");
+                  LiquidityPointCheck("Bearish");
+                  SwingCorrelationCheck("Bearish");
+               }
+            //Evening Star
+               else if(AC_Candles[cCalc].CandleType == "Bearish"
+               && AC_Candles[cCalc + 2].CandleType == "Bullish"
+               
+               && ((AC_Candles[cCalc].High < AC_Candles[cCalc + 1].High
+               && AC_Candles[cCalc].Close < AC_Candles[cCalc + 2].Open
+               && AC_Candles[cCalc + 1].Close > AC_Candles[cCalc + 2].Close)
+               || 
+                  (AC_Candles[cCalc].High < AC_Candles[cCalc + 1].High
+               && AC_Candles[cCalc + 2].Open < AC_Candles[cCalc].Open))){
+                  IFOverPriced("Bearish");
+                  LiquidityPointCheck("Bearish");
+                  SwingCorrelationCheck("Bearish");
+               }
+}
+
+double CalculateTCL() {
+   double TCL;
+   TCL = SwingCorrelationPoint + LiquidityPoint + OverPrice_int + ChoppyP + VPA;
+   return TCL;
+}
+void PanelDisplayUpdate() {
+   TCL_Label.Text("[Pattern]: " + Pattern_OMB_E + " [TCL]: " + CalculateTCL());
 }
