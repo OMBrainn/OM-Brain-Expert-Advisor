@@ -1255,7 +1255,10 @@ void NeoChartEvent(const int id,
          PanelDisplayUpdate();
       }
       if(sparam=="Liquid Load"){
-         ChoppyP_ToggleFunc(ChoppyP_int);
+         LiquidityHit_Fr_DownSide = true;
+         LiquidityHit_Fr_UpSide = true;
+         SendNotification(_Symbol + " Loaded Liquidity Up & Down Side"); 
+         MessageBox(_Symbol + "  Loaded Liquidity Up & Down Side"); 
          PanelDisplayUpdate();
       }
    }
