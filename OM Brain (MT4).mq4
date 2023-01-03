@@ -18,8 +18,8 @@ struct HCandles  {   int RCN;      //RCN (Recent Candle Num)
 /*Variables*/
 /*<--General Vars*/
 bool FirstCandleProcess_ = false;
-extern string TimeFrame = "15M";
-extern float LiquidityRange = 3;
+extern string TimeFrame = "5M";
+extern float LiquidityRange = 0.00002f;
 extern int Window = 100;   // Number of candles to scan
 HCandles HCandles_[100]; 
 int i = 0;
@@ -436,7 +436,7 @@ void CPS_LiquidityThenPatternCheck(int RCN, string Pattern) {
       }
    }
 }
-string Direction = "";
+string Direction = "Off";
 bool Continue_ = false;
 /*Directive Alerts Set*/
 void OnChartEvent(const int EventID,      //Event Event ID
@@ -448,36 +448,52 @@ void OnChartEvent(const int EventID,      //Event Event ID
       short KeyThatWasPressed =TranslateKey((int)lparam);
       //Sell Set
       if(ShortToString(KeyThatWasPressed) == "s") {
+         ContinuationAlertAdd = "";
+         Continue_Button.Text("Continue: Off");
          Direction = "Sell";
          Continue_ = false;
+         PanelDisplayUpdate();
          SendNotification(_Symbol + " " + Direction + " Direction Set");
          MessageBox(_Symbol + " " + Direction + " Direction Set");
       }
       else if(ShortToString(KeyThatWasPressed) == "b") {
+         ContinuationAlertAdd = "";
+         Continue_Button.Text("Continue: Off");
          Direction = "Buy";
          Continue_ = false;
+         PanelDisplayUpdate();
          SendNotification(_Symbol + " " + Direction + " Direction Set");
          MessageBox(_Symbol + " " + Direction + " Direction Set");
       }
       else if(ShortToString(KeyThatWasPressed) == "n") {
+         ContinuationAlertAdd = "";
+         Continue_Button.Text("Continue: Off");
          Direction = "Both";
          Continue_ = false;
+         PanelDisplayUpdate();
          SendNotification(_Symbol + " " + Direction + " Direction Set");
          MessageBox(_Symbol + " " + Direction + " Direction Set");
       }
       else if(ShortToString(KeyThatWasPressed) == "o") {
-         Direction = "";
+         ContinuationAlertAdd = "";
+         Continue_Button.Text("Continue: Off");
+         Direction = "Off";
          Continue_ = false;
+         PanelDisplayUpdate();
          SendNotification(_Symbol + " Direction Set Off"); 
          MessageBox(_Symbol + " Direction Set Off"); 
       }
       if(ShortToString(KeyThatWasPressed) == "c" && !Continue_) {
-         
+         ContinuationAlertAdd = "Continuation";
+         Continue_Button.Text("Continue: On");
+         PanelDisplayUpdate();
          MessageBox(_Symbol + " " + "Continue Alerts On");
          Continue_ = true;
       }
       else if(ShortToString(KeyThatWasPressed) == "c" && Continue_) {
-         
+         ContinuationAlertAdd = "";
+         Continue_Button.Text("Continue: Off");
+         PanelDisplayUpdate();
          MessageBox(_Symbol + " " + "Continue Alerts Off");
          Continue_ = false;
       }
@@ -832,9 +848,10 @@ void OnTick(){
 #define BUTTON_HEIGHT (20)
 
 CAppDialog OMB_E;
-CButton Bull_Button;
-CButton Bear_Button;
-CLabel Pervious30M_Swing;
+CButton Buy_Button;
+CButton Sell_Button;
+CButton Both_Button;
+CLabel AlertDir_;
 
 CLabel ConsolidationRange_Label;
 CEdit TopRange_Edit;
@@ -844,32 +861,36 @@ CLabel Overprice_Label;
 CEdit OverboughtP_Edit;
 CEdit OversoldP_Edit;
 
-CButton WorkReset_Button;
+CButton Continue_Button;
 
 CLabel VPA_Label;
-CButton VPA_Toggle;
+CButton AlertO_Toggle;
 CLabel ChoppyPattern_Label;
-CButton ChoppyPattern_Button;
+CButton LiquidLoad_Button;
 
-CLabel TCL_Label;
+CLabel Alert_Label;
 
 void Init_Panel() {
    if(!OMB_E.Create(0, "O(M).Brain Execution",0,20,20,360,424))
       return(INIT_FAILED);
    //Swing Button Toggle
-   if(!CreateBull_Button())
+   if(!CreateBuy_Button())
       return(false);
-   if(!CreateBear_Button())
+   if(!CreateSell_Button())
       return(false);
-   if(!OMB_E.Add(Bull_Button))
+   if(!CreateBoth_Button())
       return(false);
-   if(!OMB_E.Add(Bear_Button))
+   if(!OMB_E.Add(Buy_Button))
       return(false);
-   if(!Create_Pervious30M_Swing())
+   if(!OMB_E.Add(Sell_Button))
       return(false);
-   if(!OMB_E.Add(Pervious30M_Swing))
+   if(!OMB_E.Add(Both_Button))
       return(false);
-   //Consolidation Range
+   if(!Create_AlertDir())
+      return(false);
+   if(!OMB_E.Add(AlertDir_))
+      return(false);
+   /*Consolidation Range
    if(!Create_ConsolidationRange_Label())
       return(false);
    if(!OMB_E.Add(ConsolidationRange_Label))
@@ -894,89 +915,102 @@ void Init_Panel() {
    if(!Create_OversoldP_Edit())
       return(false);
    if(!OMB_E.Add(OversoldP_Edit))
+      return(false);*/
+      
+   if(!CreateContinuation_Button())
       return(false);
-   //Work Reset
-   if(!CreateWorkReset_Button())
-      return(false);
-   if(!OMB_E.Add(WorkReset_Button))
-      return(false);
-   //VPA & Choppy Pattern
-   if(!Create_VPA_Label())
-      return(false);
-   if(!OMB_E.Add(VPA_Label))
-      return(false);
-   if(!CreateVPA_Toggle())
-      return(false);
-   if(!OMB_E.Add(VPA_Toggle))
+   if(!OMB_E.Add(Continue_Button))
       return(false);
       
-   if(!Create_ChoppyPattern_Label())
+   if(!CreateAlertO_Toggle())
       return(false);
-   if(!OMB_E.Add(ChoppyPattern_Label))
+   if(!OMB_E.Add(AlertO_Toggle))
       return(false);
-   if(!CreateChoppyPattern_Button())
+      
+   if(!CreateLiquidLoad_Button())
       return(false);
-   if(!OMB_E.Add(ChoppyPattern_Button))
+   if(!OMB_E.Add(LiquidLoad_Button))
       return(false);
       
    //TCL
-   if(!Create_TCL_Label())
+   if(!Create_Alert_Label())
       return(false);
-   if(!OMB_E.Add(TCL_Label))
+   if(!OMB_E.Add(Alert_Label))
       return(false);
 }
-bool CreateBull_Button(void) {
+bool CreateBuy_Button(void) {
    int x1=INDENT_LEFT;
    int y1=INDENT_TOP + 20;
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    
-   if(!Bull_Button.Create(0, "Bull", 0,x1,y1,x2,y2))
+   if(!Buy_Button.Create(0, "Buy", 0,x1,y1,x2,y2))
       return(false);
-   if(!Bull_Button.Text("Bull"))
+   if(!Buy_Button.Text("Buy"))
       return(false);
-   if(!Bull_Button.ColorBackground(clrLime))
+   if(!Buy_Button.ColorBackground(clrLime))
       return(false);
-   if(!OMB_E.Add(Bull_Button))
+   if(!OMB_E.Add(Buy_Button))
       return(false);
       
    return(true);
 }
-bool CreateBear_Button(void) {
+bool CreateSell_Button(void) {
    int x1=INDENT_LEFT+ 156;
    int y1=INDENT_TOP + 20;
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    
-   if(!Bear_Button.Create(0, "Bear", 0,x1,y1,x2,y2))
+   if(!Sell_Button.Create(0, "Sell", 0,x1,y1,x2,y2))
       return(false);
-   if(!Bear_Button.Text("Bear"))
+   if(!Sell_Button.Text("Sell"))
       return(false);
-   if(!Bear_Button.ColorBackground(clrRed))
+   if(!Sell_Button.ColorBackground(clrRed))
       return(false);
-   if(!Bear_Button.Color(clrWhite))
+   if(!Sell_Button.Color(clrWhite))
       return(false);
-   if(!OMB_E.Add(Bear_Button))
+   if(!OMB_E.Add(Sell_Button))
       return(false);
    
       
    return(true);
 }
-bool Create_Pervious30M_Swing(void) {
+bool CreateBoth_Button(void) {
+   int x1=INDENT_LEFT + 80;
+   int y1=INDENT_TOP + 60;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!Both_Button.Create(0, "Both", 0,x1,y1,x2,y2))
+      return(false);
+   if(!Both_Button.Text("Both"))
+      return(false);
+   if(!Both_Button.ColorBackground(clrAqua))
+      return(false);
+   if(!Both_Button.Color(clrBlack))
+      return(false);
+   if(!OMB_E.Add(Both_Button))
+      return(false);
+   
+      
+   return(true);
+}
+bool Create_AlertDir(void) {
    int x1=INDENT_LEFT + 60;
    int y1=INDENT_TOP;
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    
-   if(!Pervious30M_Swing.Create(0, "Previous 30M Swing", 0,x1,y1,x2,y2))
+   if(!AlertDir_.Create(0, "Alert Dir", 0,x1,y1,x2,y2))
       return(false);
-   if(!Pervious30M_Swing.Text("<<Previous 30M Swing>>"))
+   if(!AlertDir_.Text("<<Alert Directions>>"))
       return(false);
-   if(!OMB_E.Add(Pervious30M_Swing))
+   if(!OMB_E.Add(AlertDir_))
       return(false);
       
    return(true);
 }
+/*
 bool Create_ConsolidationRange_Label(void) {
    int x1=INDENT_LEFT + 60;
    int y1=INDENT_TOP + 40;
@@ -1070,112 +1104,82 @@ bool Create_OversoldP_Edit(void) {
       return(false);
       
    return(true);
-}
-bool CreateWorkReset_Button(void) {
+}*/
+bool CreateContinuation_Button(void) {
    int x1=INDENT_LEFT + 80;
-   int y1=INDENT_TOP + 130;
+   int y1=INDENT_TOP + 100;
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    
-   if(!WorkReset_Button.Create(0, "Work Reset", 0,x1,y1,x2,y2))
+   if(!Continue_Button.Create(0, "Continuation", 0,x1,y1,x2,y2))
       return(false);
-   if(!WorkReset_Button.Text("Work Reset"))
+   if(!Continue_Button.Text("Continue: Off"))
       return(false);
-   if(!WorkReset_Button.ColorBackground(clrPurple))
+   if(!Continue_Button.ColorBackground(clrAzure))
       return(false);
-   if(!WorkReset_Button.Color(clrWhite))
+   if(!Continue_Button.Color(clrBlack))
       return(false);
-   if(!OMB_E.Add(WorkReset_Button))
+   if(!OMB_E.Add(Continue_Button))
       return(false);
       
    return(true);
 }
-bool Create_VPA_Label(void) {
-   int x1=INDENT_LEFT + 100;
-   int y1=INDENT_TOP + 150;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
-   
-   if(!VPA_Label.Create(0, "VPA", 0,x1,y1,x2,y2))
-      return(false);
-   if(!VPA_Label.Text("??VPA??"))
-      return(false);
-   if(!OMB_E.Add(VPA_Label))
-      return(false);
-      
-   return(true);
-}
-bool CreateVPA_Toggle(void) {
+bool CreateAlertO_Toggle(void) {
    int x1=INDENT_LEFT + 80;
-   int y1=INDENT_TOP + 170;
+   int y1=INDENT_TOP + 140;
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    
-   if(!VPA_Toggle.Create(0, "VPA Toggle", 0,x1,y1,x2,y2))
+   if(!AlertO_Toggle.Create(0, "Alerts Off", 0,x1,y1,x2,y2))
       return(false);
-   if(!VPA_Toggle.Text("None"))
+   if(!AlertO_Toggle.Text("Alerts Off"))
       return(false);
-   if(!VPA_Toggle.ColorBackground(clrCoral))
+   if(!AlertO_Toggle.ColorBackground(clrBlack))
       return(false);
-   if(!VPA_Toggle.Color(clrWhite))
+   if(!AlertO_Toggle.Color(clrWhite))
       return(false);
-   if(!OMB_E.Add(VPA_Toggle))
+   if(!OMB_E.Add(AlertO_Toggle))
       return(false);
       
    return(true);
 }
-bool Create_ChoppyPattern_Label(void) {
+bool CreateLiquidLoad_Button(void) {
    int x1=INDENT_LEFT + 80;
-   int y1=INDENT_TOP + 190;
+   int y1=INDENT_TOP + 270;
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    
-   if(!ChoppyPattern_Label.Create(0, "Choppy Pattern Label", 0,x1,y1,x2,y2))
+   if(!LiquidLoad_Button.Create(0, "Liquid Load", 0,x1,y1,x2,y2))
       return(false);
-   if(!ChoppyPattern_Label.Text("??Choppy Pattern??"))
+   if(!LiquidLoad_Button.Text("Liquid Load"))
       return(false);
-   if(!OMB_E.Add(ChoppyPattern_Label))
+   if(!LiquidLoad_Button.ColorBackground(clrBlue))
+      return(false);
+   if(!LiquidLoad_Button.Color(clrWhite))
+      return(false);
+   if(!OMB_E.Add(LiquidLoad_Button))
       return(false);
       
    return(true);
 }
-bool CreateChoppyPattern_Button(void) {
-   int x1=INDENT_LEFT + 80;
-   int y1=INDENT_TOP + 210;
+bool Create_Alert_Label(void) {
+   int x1=INDENT_LEFT + 60;
+   int y1=INDENT_TOP + 180;
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    
-   if(!ChoppyPattern_Button.Create(0, "Choppy Pattern Button", 0,x1,y1,x2,y2))
+   if(!Alert_Label.Create(0, "Alert Label", 0,x1,y1,x2,y2))
       return(false);
-   if(!ChoppyPattern_Button.Text("None"))
+   if(!Alert_Label.Text("Alert Direction:   " + AlertStr))
       return(false);
-   if(!ChoppyPattern_Button.ColorBackground(clrCoral))
-      return(false);
-   if(!ChoppyPattern_Button.Color(clrWhite))
-      return(false);
-   if(!OMB_E.Add(ChoppyPattern_Button))
-      return(false);
-      
-   return(true);
-}
-bool Create_TCL_Label(void) {
-   int x1=INDENT_LEFT + 35;
-   int y1=INDENT_TOP + 250;
-   int x2=x1+BUTTON_WIDTH;
-   int y2=y1+BUTTON_HEIGHT;
-   
-   if(!TCL_Label.Create(0, "TCL_Label", 0,x1,y1,x2,y2))
-      return(false);
-   if(!TCL_Label.Text("[Pattern]: " + "??" + "[TCL]: " + "??"))
-      return(false);
-   if(!OMB_E.Add(TCL_Label))
+   if(!OMB_E.Add(Alert_Label))
       return(false);
       
    return(true);
 }
 double VPA = 0;
 string Pre30Swing = "";
-int VPA_Toggle_int = 0;
+int AlertO_Toggle_int = 0;
 
 int ChoppyP_int = 0;
 double ChoppyP = 0;
@@ -1197,30 +1201,66 @@ void NeoChartEvent(const int id,
                   const string& sparam) {
    OMB_E.ChartEvent(id,lparam,dparam,sparam);
    if(id==CHARTEVENT_OBJECT_CLICK){
-      if(sparam=="Bull"){
-         Pre30Swing = "Bullish";
+      if(sparam=="Buy"){
+         ContinuationAlertAdd = "";
+         Continue_Button.Text("Continue: Off");
+         Direction = "Buy";
+         Continue_ = false;
+         SendNotification(_Symbol + " " + Direction + " Direction Set");
+         MessageBox(_Symbol + " " + Direction + " Direction Set");
          PanelDisplayUpdate();
          Print("Previous 30M Swing: Bull");
       }
-      if(sparam=="Bear"){
-         Pre30Swing = "Bearish";
+      if(sparam=="Sell"){
+         ContinuationAlertAdd = "";
+         Continue_Button.Text("Continue: Off");
+         Direction = "Sell";
+         Continue_ = false;
+         SendNotification(_Symbol + " " + Direction + " Direction Set");
+         MessageBox(_Symbol + " " + Direction + " Direction Set");
          PanelDisplayUpdate();
          Print("Previous 30M Swing: Bear");
       }
-      if(sparam=="Work Reset"){
-         ConsolidationDisplay();
+      if(sparam=="Both"){
+         ContinuationAlertAdd = "";
+         Continue_Button.Text("Continue: Off");
+         Direction = "Both";
+         Continue_ = false;
+         SendNotification(_Symbol + " " + Direction + " Direction Set");
+         MessageBox(_Symbol + " " + Direction + " Direction Set");
+         PanelDisplayUpdate();
+      }
+      if(sparam=="Continuation"){
+            if(!Continue_) {
+               ContinuationAlertAdd = "Continuation";
+               Continue_Button.Text("Continue: On");
+               MessageBox(_Symbol + " " + "Continue Alerts On");
+               Continue_ = true;
+            }
+            else if(Continue_) {
+               ContinuationAlertAdd = "";
+               Continue_Button.Text("Continue: Off");
+               MessageBox(_Symbol + " " + "Continue Alerts Off");
+               Continue_ = false;
+            }
          PanelDisplayUpdate();
          Print("Swing and Consolidation Range Reset");
       }
-      if(sparam=="VPA Toggle"){
-         VPA_ToggleFunc(VPA_Toggle_int);
+      if(sparam=="Alerts Off"){
+         ContinuationAlertAdd = "";
+         Direction = "Off";
+         Continue_ = false;
+         SendNotification(_Symbol + " Direction Set Off"); 
+         MessageBox(_Symbol + " Direction Set Off"); 
          PanelDisplayUpdate();
       }
-      if(sparam=="Choppy Pattern Button"){
+      if(sparam=="Liquid Load"){
          ChoppyP_ToggleFunc(ChoppyP_int);
          PanelDisplayUpdate();
       }
    }
+   /*
+   
    if(id==CHARTEVENT_OBJECT_ENDEDIT){
       if(sparam=="Top Range") {
          TopRange_double = TopRange_Edit.Text();
@@ -1238,9 +1278,9 @@ void NeoChartEvent(const int id,
          OverboughtPoint = OverboughtP_Edit.Text();
          PanelDisplayUpdate();
       }
-   } 
+   } */
 }
-void VPA_ToggleFunc(int i) {
+void AlertO_ToggleFunc(int i) {
 /*
 0 = Steady
 1 = S-Volatile
@@ -1248,23 +1288,23 @@ void VPA_ToggleFunc(int i) {
 3 = Exhuastion
 */
    if(i == 0) {
-      VPA_Toggle.Text("Steady");
+      AlertO_Toggle.Text("Steady");
       VPA = 0;
    }
    else if(i == 1) {
-      VPA_Toggle.Text("S-Volatile");
+      AlertO_Toggle.Text("S-Volatile");
       VPA = 2;
    }
    else if(i == 2) {
-      VPA_Toggle.Text("Volatile");
+      AlertO_Toggle.Text("Volatile");
       VPA = 3;
    }
    else if(i == 3) {
-      VPA_Toggle.Text("Exhuastion");
+      AlertO_Toggle.Text("Exhuastion");
       VPA = -5;
-      VPA_Toggle_int = -1;
+      AlertO_Toggle_int = -1;
    }
-   VPA_Toggle_int++;
+   AlertO_Toggle_int++;
 }
 void ChoppyP_ToggleFunc(int i) {
 /*
@@ -1272,11 +1312,11 @@ void ChoppyP_ToggleFunc(int i) {
 1 = Not
 */
    if(i == 0) {
-      ChoppyPattern_Button.Text("Choppy");
+      LiquidLoad_Button.Text("Choppy");
       ChoppyP = 0;
    }
    else if(i == 1) {
-      ChoppyPattern_Button.Text("Not");
+      LiquidLoad_Button.Text("Not");
       ChoppyP_int = -1;
       ChoppyP = 2;
    }
@@ -1432,6 +1472,9 @@ double CalculateTCL() {
    TCL = SwingCorrelationPoint + LiquidityPoint + OverPrice_int + ChoppyP + VPA;
    return TCL;
 }
+string ContinuationAlertAdd = "";
+string AlertStr = "";
 void PanelDisplayUpdate() {
-   TCL_Label.Text("[Pattern]: " + Pattern_OMB_E + " [TCL]: " + CalculateTCL());
+   AlertStr = Direction + " " + ContinuationAlertAdd;
+   Alert_Label.Text("Alert Direction:   " + AlertStr);
 }
