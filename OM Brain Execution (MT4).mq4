@@ -25,6 +25,11 @@ CLabel OderType_Label;
 CButton StarSL_Button;
 CButton EngulfingSL_Button;
 
+CButton P10_Button;
+CButton P15_Button;
+CButton P20_Button;
+CButton P25_Button;
+
 struct HCandles  {   int RCN;      //RCN (Recent Candle Num)
                   double High;  // High
                   double Low;     // Low
@@ -40,7 +45,7 @@ HCandles HCandles_[3];
 int OnInit() {
    CandleType();
    StopLoss_d = CurrentPrice() - 0.0005;
-   if(!OMB_E.Create(0, "O(M).Brain Execution",0,20,20,360,324))
+   if(!OMB_E.Create(0, "O(M).Brain Execution",0,20,20,360,424))
       return(INIT_FAILED);
    if(!CreateBuy_Button())
       return(false);
@@ -92,6 +97,28 @@ int OnInit() {
       return(false);
    if(!OMB_E.Add(EngulfingSL_Button))
       return(false);
+   
+   //Pips
+   if(!CreateP10_Button())
+      return(false);
+   if(!OMB_E.Add(P10_Button))
+      return(false);
+   
+   if(!CreateP15_Button())
+      return(false);
+   if(!OMB_E.Add(P15_Button))
+      return(false);
+   
+   if(!CreateP20_Button())
+      return(false);
+   if(!OMB_E.Add(P20_Button))
+      return(false);
+   
+   if(!CreateP25_Button())
+      return(false);
+   if(!OMB_E.Add(P25_Button))
+      return(false);
+      
    OMB_E.Run();
    return(INIT_SUCCEEDED);   
 }
@@ -203,7 +230,7 @@ bool Create_AccountSizeLabel(void) {
 
 bool CreateMExecution_Button(void) {
    int x1=INDENT_LEFT + 66;
-   int y1=INDENT_TOP + 200;
+   int y1=INDENT_TOP + 290;
    int x2=x1+BUTTON_WIDTH + 20;
    int y2=y1+BUTTON_HEIGHT + 10;
    
@@ -221,7 +248,7 @@ bool CreateMExecution_Button(void) {
 
 bool CreateOderType_Label(void) {
    int x1=INDENT_LEFT + 77;
-   int y1=INDENT_TOP + 150;
+   int y1=INDENT_TOP + 240;
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    
@@ -237,7 +264,7 @@ bool CreateOderType_Label(void) {
 
 bool CreatePipLot_Label(void) {
    int x1=INDENT_LEFT + 77;
-   int y1=INDENT_TOP + 170;
+   int y1=INDENT_TOP + 260;
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    
@@ -280,10 +307,73 @@ bool CreateEngulfingSL_Button(void) {
       
    return(true);
 }
+//Pips
 
+bool CreateP15_Button(void) {
+   int x1=INDENT_LEFT + 178;
+   int y1=INDENT_TOP + 150;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!P15_Button.Create(0, "15 Pips", 0,x1,y1,x2,y2))
+      return(false);
+   if(!P15_Button.Text("15 Pips"))
+      return(false);
+   if(!OMB_E.Add(P15_Button))
+      return(false);
+      
+   return(true);
+}
+bool CreateP10_Button(void) {
+   int x1=INDENT_LEFT-11;
+   int y1=INDENT_TOP + 150;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!P10_Button.Create(0, "10 Pips", 0,x1,y1,x2,y2))
+      return(false);
+   if(!P10_Button.Text("10 Pips"))
+      return(false);
+   if(!OMB_E.Add(P10_Button))
+      return(false);
+      
+   return(true);
+}
+
+
+bool CreateP25_Button(void) {
+   int x1=INDENT_LEFT + 178;
+   int y1=INDENT_TOP + 180;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!P25_Button.Create(0, "25 Pips", 0,x1,y1,x2,y2))
+      return(false);
+   if(!P25_Button.Text("25 Pips"))
+      return(false);
+   if(!OMB_E.Add(P25_Button))
+      return(false);
+      
+   return(true);
+}
+bool CreateP20_Button(void) {
+   int x1=INDENT_LEFT-11;
+   int y1=INDENT_TOP + 180;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!P20_Button.Create(0, "20 Pips", 0,x1,y1,x2,y2))
+      return(false);
+   if(!P20_Button.Text("20 Pips"))
+      return(false);
+   if(!OMB_E.Add(P20_Button))
+      return(false);
+      
+   return(true);
+}
 string OrderType_ = "Buy";
 double StopLoss_d = 0.0;
-double AccountSize = 20000;
+double AccountSize = 200000;
 float LotSize = 0.0;
 void OnChartEvent(const int id,
                   const long& lparam,
@@ -322,6 +412,32 @@ void OnChartEvent(const int id,
          DisplayLines();
          Print("Engulfing 2C: Stop Loss Changed to ", StopLoss_Edit.Text());
       }
+      if(sparam=="10 Pips") {
+         StopLoss_d = NumPip_SL(10);
+         StopLoss_Edit.Text(StopLoss_d);
+         DisplayLines();
+         Print("Stop Loss Changed to ", StopLoss_Edit.Text());
+      }
+      if(sparam=="15 Pips") {
+         StopLoss_d = NumPip_SL(15);
+         StopLoss_Edit.Text(StopLoss_d);
+         DisplayLines();
+         Print("Stop Loss Changed to ", StopLoss_Edit.Text());
+      }
+      if(sparam=="20 Pips") {
+         StopLoss_d = NumPip_SL(20);
+         StopLoss_Edit.Text(StopLoss_d);
+         DisplayLines();
+         Print("Stop Loss Changed to ", StopLoss_Edit.Text());
+      }
+      if(sparam=="25 Pips") {
+         StopLoss_d = NumPip_SL(25);
+         StopLoss_Edit.Text(StopLoss_d);
+         DisplayLines();
+         Print("Stop Loss Changed to ", StopLoss_Edit.Text());
+      }
+      
+      
       if(sparam=="Market Execution") {
          MEX();
          ObjectDelete(_Symbol, "Entry Line");
@@ -438,6 +554,17 @@ double PipCount_(){
    }
    return result * 10000;
 }
+double NumPip_SL(double Pips) {
+   double PipDistance = Pips / 10000;
+   double result;
+   if(OrderType_ == "Buy") {
+      result = CurrentPrice() - PipDistance;
+   }
+   else if(OrderType_ == "Sell") {
+      result = CurrentPrice() + PipDistance;
+   }
+   return result;
+}
 double LotSize_Calc(){
    return StringSubstr((AccountSize * 0.01) / (10 * PipCount_()),0,4);
 }
@@ -453,7 +580,7 @@ void MEX() {
 /*
 Not Really important but an attempt to fix buttons and other inside 
 elements positions base on panel position.
-But the program is really just a One and Done thing.
+But the program is really just a One and Done thing. 
 double UI_Correction_y() {
    return OMB_E.Top() - 20;
 }
