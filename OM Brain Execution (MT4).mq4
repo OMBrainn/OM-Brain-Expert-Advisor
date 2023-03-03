@@ -14,6 +14,7 @@ CButton Buy_Button;
 CButton Sell_Button;
 CEdit AccountSize_Edit;
 CLabel AccountSize_Label;
+CLabel Risk_Label;
 CEdit StopLoss_Edit;
 CLabel StopLoss_Label;
 
@@ -29,6 +30,11 @@ CButton P10_Button;
 CButton P15_Button;
 CButton P20_Button;
 CButton P25_Button;
+
+CLabel TradeType_Label;
+CButton C_Button;
+CButton S_Button;
+CButton X_Button;
 
 struct HCandles  {   int RCN;      //RCN (Recent Candle Num)
                   double High;  // High
@@ -71,6 +77,10 @@ int OnInit() {
    if(!Create_AccountSizeLabel())
       return(false);
    if(!OMB_E.Add(AccountSize_Label))
+      return(false);
+   if(!Create_RiskLabel())
+      return(false);
+   if(!OMB_E.Add(Risk_Label))
       return(false);
       
    if(!CreateMExecution_Button())
@@ -117,6 +127,27 @@ int OnInit() {
    if(!CreateP25_Button())
       return(false);
    if(!OMB_E.Add(P25_Button))
+      return(false);
+      
+   //Trade Type
+   if(!CreateTradeType_Label())
+      return(false);
+   if(!OMB_E.Add(TradeType_Label))
+      return(false);
+      
+   if(!CreateC_Button())
+      return(false);
+   if(!OMB_E.Add(C_Button))
+      return(false);
+      
+   if(!CreateS_Button())
+      return(false);
+   if(!OMB_E.Add(S_Button))
+      return(false);
+      
+   if(!CreateX_Button())
+      return(false);
+   if(!OMB_E.Add(X_Button))
       return(false);
       
    OMB_E.Run();
@@ -194,7 +225,7 @@ bool Create_StopLossLabel(void) {
 }
 bool Create_AccountSizeEdit(void) {
    int x1=INDENT_LEFT + 106;
-   int y1=INDENT_TOP + 60;
+   int y1=INDENT_TOP + 30;
    int x2=x1+BUTTON_WIDTH + 50;
    int y2=y1+BUTTON_HEIGHT;
    if(!AccountSize_Edit.Create(0, "AccSize", 0,x1,y1,x2,y2))
@@ -214,7 +245,7 @@ bool Create_AccountSizeEdit(void) {
 }
 bool Create_AccountSizeLabel(void) {
    int x1=INDENT_LEFT;
-   int y1=INDENT_TOP + 60;
+   int y1=INDENT_TOP + 30;
    int x2=x1+BUTTON_WIDTH;
    int y2=y1+BUTTON_HEIGHT;
    
@@ -223,6 +254,21 @@ bool Create_AccountSizeLabel(void) {
    if(!AccountSize_Label.Text("Acc Size: "))
       return(false);
    if(!OMB_E.Add(AccountSize_Label))
+      return(false);
+      
+   return(true);
+}
+bool Create_RiskLabel(void) {
+   int x1=INDENT_LEFT;
+   int y1=INDENT_TOP + 60;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!Risk_Label.Create(0, "Risk Percentage", 0,x1,y1,x2,y2))
+      return(false);
+   if(!Risk_Label.Text("Risk Percentage: 1%"))
+      return(false);
+   if(!OMB_E.Add(Risk_Label))
       return(false);
       
    return(true);
@@ -371,9 +417,72 @@ bool CreateP20_Button(void) {
       
    return(true);
 }
+//Trade Type
+bool CreateTradeType_Label(void) {
+   int x1=INDENT_LEFT-11;
+   int y1=INDENT_TOP + 210;
+   int x2=x1+BUTTON_WIDTH;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!TradeType_Label.Create(0, "Trade Type", 0,x1,y1,x2,y2))
+      return(false);
+   if(!TradeType_Label.Text("Trade Type:"))
+      return(false);
+   if(!OMB_E.Add(TradeType_Label))
+      return(false);
+      
+   return(true);
+}
+
+bool CreateC_Button(void) {
+   int x1=INDENT_LEFT + 205;
+   int y1=INDENT_TOP + 210;
+   int x2=x1+BUTTON_WIDTH - 40;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!C_Button.Create(0, "C Trade", 0,x1,y1,x2,y2))
+      return(false);
+   if(!C_Button.Text("C Trade"))
+      return(false);
+   if(!OMB_E.Add(C_Button))
+      return(false);
+      
+   return(true);
+}
+bool CreateS_Button(void) {
+   int x1=INDENT_LEFT + 135;
+   int y1=INDENT_TOP + 210;
+   int x2=x1+BUTTON_WIDTH - 40;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!S_Button.Create(0, "S Trade", 0,x1,y1,x2,y2))
+      return(false);
+   if(!S_Button.Text("S Trade"))
+      return(false);
+   if(!OMB_E.Add(S_Button))
+      return(false);
+      
+   return(true);
+}
+bool CreateX_Button(void) {
+   int x1=INDENT_LEFT + 65;
+   int y1=INDENT_TOP + 210;
+   int x2=x1+BUTTON_WIDTH - 40;
+   int y2=y1+BUTTON_HEIGHT;
+   
+   if(!X_Button.Create(0, "X Trade", 0,x1,y1,x2,y2))
+      return(false);
+   if(!X_Button.Text("X Trade"))
+      return(false);
+   if(!OMB_E.Add(X_Button))
+      return(false);
+      
+   return(true);
+}
 string OrderType_ = "Buy";
 double StopLoss_d = 0.0;
 double AccountSize = 200000;
+float RiskPercentage = 0.01;
 float LotSize = 0.0;
 void OnChartEvent(const int id,
                   const long& lparam,
@@ -435,6 +544,21 @@ void OnChartEvent(const int id,
          StopLoss_Edit.Text(StopLoss_d);
          DisplayLines();
          Print("Stop Loss Changed to ", StopLoss_Edit.Text());
+      }
+      if(sparam=="X Trade") {
+         RiskPercentage = 0.005;
+         Risk_Label.Text("Risk Percentage: 0.5%");
+         Print("Risk Percent Changed To 0.5%");
+      }
+      if(sparam=="S Trade") {
+         RiskPercentage = 0.02;
+         Risk_Label.Text("Risk Percentage: 2%");
+         Print("Risk Percent Changed To 2%");
+      }
+      if(sparam=="C Trade") {
+         RiskPercentage = 0.01;
+         Risk_Label.Text("Risk Percentage: 1%");
+         Print("Risk Percent Changed To 1%");
       }
       
       
@@ -566,7 +690,7 @@ double NumPip_SL(double Pips) {
    return result;
 }
 double LotSize_Calc(){
-   return StringSubstr((AccountSize * 0.01) / (10 * PipCount_()),0,4);
+   return StringSubstr((AccountSize * RiskPercentage) / (10 * PipCount_()),0,4);
 }
 void MEX() {
    if(OrderType_ == "Buy") {
@@ -586,4 +710,4 @@ double UI_Correction_y() {
 }
 double UI_Correction_x() {
    return OMB_E.Left() - 20;
-}*/ 
+}*/
