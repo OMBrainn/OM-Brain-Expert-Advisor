@@ -100,7 +100,7 @@ void OnTick() {
    //Print(TimeToString(HCandles_[0].Time));
    MarkUp();
    LondonSession();
-   //TokyoSession();
+   TokyoSession();
 }
 //ObjectCreate(_Symbol,"Overbought Line",OBJ_HLINE,0,0,SessionStats_High("10:00", "15:00"));
 void LondonSession() {
@@ -117,6 +117,7 @@ void LondonSession() {
    
    ++i;
    }
+   
    if(i == Window || i > Window){
          i = 0;
    }
@@ -124,25 +125,15 @@ void LondonSession() {
    //Print("To: ", To, " From: ", From, " High: ");
 }
 int z = 0; 
-double highest = 0;
-double lowest = 100;
 void LondonLines_(int From, int To) {
    int size = From - To;
-   if(highest <= HCandles_[z + To].High) {
-      highest = HCandles_[z + To].High;
-   }
-   
-   if(lowest >= HCandles_[z + To].Low) {
-      lowest = HCandles_[z + To].Low;
-   }
-   int arr_size = ArraySize(Highs_);
       ObjectDelete(_Symbol, "Overbought Line");
       //ObjectCreate(_Symbol,"Overbought Line",OBJ_HLINE,0,0,FindHighestInIsolatedArray(Highs_, arr_size, To, From));
-      ObjectCreate(_Symbol,"Overbought Line",OBJ_HLINE,0,0,highest);
+      ObjectCreate(_Symbol,"Overbought Line",OBJ_HLINE,0,0, HighCal(Highs_,ArraySize(Highs_),To,From));
       ObjectSetInteger(0,"Overbought Line",OBJPROP_COLOR,clrCyan);
       
       ObjectDelete(_Symbol, "Oversold Line");
-      ObjectCreate(_Symbol,"Oversold Line",OBJ_HLINE,0,0,lowest);
+      ObjectCreate(_Symbol,"Oversold Line",OBJ_HLINE,0,0,LowCal(Lows_,ArraySize(Lows_),To,From));
       ObjectSetInteger(0,"Oversold Line",OBJPROP_COLOR,clrCyan);
    
    ++z;
@@ -171,55 +162,54 @@ void TokyoSession() {
    TokyoLines_(From, To);
    
 }
-double T_highest = 0;
-double T_lowest = 100;
 int x = 0;
 void TokyoLines_(int From, int To) {
    int size = From - To;
-   if(T_highest <= HCandles_[x + To].High) {
-      T_highest = HCandles_[x + To].High;
-   }
-   
-   if(T_lowest >= HCandles_[x + To].Low) {
-      T_lowest = HCandles_[x + To].Low;
-   }
+      float TRL = HighCal(Highs_,ArraySize(Highs_),To,From);
+      float BRL = LowCal(Lows_,ArraySize(Lows_),To,From);
       ObjectDelete(_Symbol, "Top Range Line");
-      ObjectCreate(_Symbol,"Top Range Line",OBJ_HLINE,0,0,T_highest);
+      ObjectCreate(_Symbol,"Top Range Line",OBJ_HLINE,0,0,TRL);
       ObjectSetInteger(0,"Top Range Line",OBJPROP_COLOR,clrBlack);
       
       ObjectDelete(_Symbol, "Bottom Range Line");
-      ObjectCreate(_Symbol,"Bottom Range Line",OBJ_HLINE,0,0,T_lowest);
+      ObjectCreate(_Symbol,"Bottom Range Line",OBJ_HLINE,0,0,BRL);
       ObjectSetInteger(0,"Bottom Range Line",OBJPROP_COLOR,clrBlack);
       
       ObjectDelete(_Symbol, "Mid Range Line");
-      ObjectCreate(_Symbol,"Mid Range Line",OBJ_HLINE,0,0,((T_highest - T_lowest) / 2) + T_lowest);
+      ObjectCreate(_Symbol,"Mid Range Line",OBJ_HLINE,0,0,((TRL - BRL) / 2) + BRL);
       ObjectSetInteger(0,"Mid Range Line",OBJPROP_COLOR,clrBlack);
    ++x;
    if(x == size || x > size){
          x = 0;
    }
-   Print("To: ", To, " From: ", From, " Size: ", size, "int: ", x);
+   //Print("To: ", To, " From: ", From, " Size: ", size, "int: ", x);
 }
-float FindHighestInIsolatedArray(float arr[], int arr_size, int start_index, int end_index)
-{
-    float isolated_arr[]; // initialize new array to empty
-    
-    for(int i=start_index; i<=end_index; i++)
+
+float HighCal(float Array_[], int arr_size, int To, int From) {
+  
+   float HighVal = Array_[To];
+   
+   for(int a=To; a<=From; a++)
     {
-        ArrayResize(isolated_arr, ArraySize(isolated_arr)+1); // add one element to the isolated array
-        isolated_arr[ArraySize(isolated_arr)-1] = arr[i]; // add the isolated value to the end of the isolated array
-    }
-    
-    float highest_value = isolated_arr[0];
-    for(int a=1; a<ArraySize(isolated_arr); a++)
-    {
-        if(isolated_arr[a] > highest_value)
-        {
-            highest_value = isolated_arr[a]; // update highest value if found a new highest value
+        if(HighVal < Array_[a]) {
+            HighVal = Array_[a];
         }
     }
     
-    Print("The highest value within the isolated array is: ", highest_value);
+   Print("Element[", To, "] Value: ", HighVal);
+   return HighVal;
 }
-/*On Sunday you have to complete the code from ChatGPT, we want an instant markup not one that takes too long*/
-
+float LowCal(float Array_[], int arr_size, int To, int From) {
+  
+   float LowVal = Array_[To];
+   
+   for(int a=To; a<=From; a++)
+    {
+        if(LowVal > Array_[a]) {
+            LowVal = Array_[a];
+        }
+    }
+    
+   Print("Element[", To, "] Value: ", LowVal);
+   return LowVal;
+}
