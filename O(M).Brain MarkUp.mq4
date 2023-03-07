@@ -129,11 +129,11 @@ void LondonLines_(int From, int To) {
    int size = From - To;
       ObjectDelete(_Symbol, "Overbought Line");
       //ObjectCreate(_Symbol,"Overbought Line",OBJ_HLINE,0,0,FindHighestInIsolatedArray(Highs_, arr_size, To, From));
-      ObjectCreate(_Symbol,"Overbought Line",OBJ_HLINE,0,0, HighCal(Highs_,ArraySize(Highs_),To,From));
+      ObjectCreate(_Symbol,"Overbought Line",OBJ_HLINE,0,0, HighCal(Highs_,ArraySize(Highs_),To,From, "London"));
       ObjectSetInteger(0,"Overbought Line",OBJPROP_COLOR,clrCyan);
       
       ObjectDelete(_Symbol, "Oversold Line");
-      ObjectCreate(_Symbol,"Oversold Line",OBJ_HLINE,0,0,LowCal(Lows_,ArraySize(Lows_),To,From));
+      ObjectCreate(_Symbol,"Oversold Line",OBJ_HLINE,0,0,LowCal(Lows_,ArraySize(Lows_),To,From, "London"));
       ObjectSetInteger(0,"Oversold Line",OBJPROP_COLOR,clrCyan);
    
    ++z;
@@ -153,20 +153,20 @@ void TokyoSession() {
    if(HCandles_[i].Time == StringToTime("10:00")) {
       To = i;
    }
-   else { To = 0; }
    ++i;
    }
    if(i == Window || i > Window){
          i = 0;
    }
    TokyoLines_(From, To);
+   Print("Tokyo From: ", From, " To: ", To);
    
 }
 int x = 0;
 void TokyoLines_(int From, int To) {
    int size = From - To;
-      float TRL = HighCal(Highs_,ArraySize(Highs_),To,From);
-      float BRL = LowCal(Lows_,ArraySize(Lows_),To,From);
+      float TRL = HighCal(Highs_,ArraySize(Highs_),To,From, "Tokyo");
+      float BRL = LowCal(Lows_,ArraySize(Lows_),To,From, "Tokyo");
       ObjectDelete(_Symbol, "Top Range Line");
       ObjectCreate(_Symbol,"Top Range Line",OBJ_HLINE,0,0,TRL);
       ObjectSetInteger(0,"Top Range Line",OBJPROP_COLOR,clrBlack);
@@ -185,7 +185,7 @@ void TokyoLines_(int From, int To) {
    //Print("To: ", To, " From: ", From, " Size: ", size, "int: ", x);
 }
 
-float HighCal(float Array_[], int arr_size, int To, int From) {
+float HighCal(float Array_[], int arr_size, int To, int From, string Type) {
   
    float HighVal = Array_[To];
    
@@ -196,10 +196,10 @@ float HighCal(float Array_[], int arr_size, int To, int From) {
         }
     }
     
-   Print("Element[", To, "] Value: ", HighVal);
+   Print("Element[", To, "] Value: ", HighVal, " ", Type);
    return HighVal;
 }
-float LowCal(float Array_[], int arr_size, int To, int From) {
+float LowCal(float Array_[], int arr_size, int To, int From, string Type) {
   
    float LowVal = Array_[To];
    
@@ -210,6 +210,6 @@ float LowCal(float Array_[], int arr_size, int To, int From) {
         }
     }
     
-   Print("Element[", To, "] Value: ", LowVal);
+   Print("Element[", To, "] Value: ", LowVal, " ", Type);
    return LowVal;
 }
