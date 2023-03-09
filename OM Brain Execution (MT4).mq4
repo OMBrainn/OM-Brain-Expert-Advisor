@@ -547,26 +547,30 @@ void OnChartEvent(const int id,
       }
       if(sparam=="X Trade") {
          RiskPercentage = 0.005;
+         MEX_Lock = true;
          Risk_Label.Text("Risk Percentage: 0.5%");
          Print("Risk Percent Changed To 0.5%");
       }
       if(sparam=="S Trade") {
          RiskPercentage = 0.02;
+         MEX_Lock = true;
          Risk_Label.Text("Risk Percentage: 2%");
          Print("Risk Percent Changed To 2%");
       }
       if(sparam=="C Trade") {
          RiskPercentage = 0.01;
+         MEX_Lock = true;
          Risk_Label.Text("Risk Percentage: 1%");
          Print("Risk Percent Changed To 1%");
       }
       
-      
-      if(sparam=="Market Execution") {
-         MEX();
-         ObjectDelete(_Symbol, "Entry Line");
-         ObjectDelete(_Symbol, "Stop Loss Line");
-         ExpertRemove();
+      if(MEX_Lock) {
+         if(sparam=="Market Execution") {
+            MEX();
+            ObjectDelete(_Symbol, "Entry Line");
+            ObjectDelete(_Symbol, "Stop Loss Line");
+            ExpertRemove();
+         }
       }
    }
    if(id==CHARTEVENT_OBJECT_ENDEDIT){
@@ -577,9 +581,16 @@ void OnChartEvent(const int id,
       }
    }
 }
+bool MEX_Lock = false;
 void OnTick() {
    CandleType();
    DisplayLines();
+   if(!MEX_Lock) {
+      MExecution_Button.Color(clrRed);
+   }
+   else if(MEX_Lock) {
+      MExecution_Button.Color(clrBlack);
+   }
 }
 //Function that access the bars through MQLRates, then returns what is requested
 double MQLR_Bars(int i, string Request){
@@ -700,14 +711,3 @@ void MEX() {
       OrderSend(_Symbol, OP_SELL, LotSize_Calc(),NULL,3,StopLoss_d,NULL,NULL,NULL,0,clrRed);
    }
 }
-
-/*
-Not Really important but an attempt to fix buttons and other inside 
-elements positions base on panel position.
-But the program is really just a One and Done thing. 
-double UI_Correction_y() {
-   return OMB_E.Top() - 20;
-}
-double UI_Correction_x() {
-   return OMB_E.Left() - 20;
-}*/
