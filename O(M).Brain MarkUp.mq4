@@ -112,7 +112,7 @@ void LondonSession() {
       From = i;
    }
    if(HCandles_[i].Time == StringToTime("15:00")) {
-      To = i;
+      To = i + 1;
    } 
    
    ++i;
@@ -151,7 +151,7 @@ void TokyoSession() {
       From = i;
    }
    if(HCandles_[i].Time == StringToTime("10:00")) {
-      To = i;
+      To = i + 1;
    }
    ++i;
    }
