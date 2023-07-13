@@ -386,6 +386,7 @@ void PatternDisplay() {
 static int LastCandleNumber;
 int OnInit()
   {
+   SymbolCheck();
    CandleType();
    StopLoss_d = CurrentPrice() - 0.0005;
    Init_Panel();
@@ -916,6 +917,20 @@ void MarkUpDisplay() {
    }
    else if(!MarkUp_bool) {
          MarkUp_Clean();
+   }
+}
+string SymbolStr = "";
+int CalcOffset = 10000;
+void SymbolCheck() {
+   if(Symbol() == "AUDUSD") {
+      SymbolStr = "AU";
+      CalcOffset = 10000;
+      Print("AU");
+   }
+   else if(Symbol() == "XAUUSD") {
+      SymbolStr = "Gold";
+      CalcOffset = 10;
+      Print("Gold");
    }
 }
 void OnTick(){
@@ -1848,7 +1863,7 @@ void NeoChartEvent(const int id,
          if(!PageMerge){
             ADC_bool = false;
             MarkUp_bool = false;
-            MarkUp_Clean();
+            MarkUp_Clean(); 
          }
          Hide_AlertDir();
       }
@@ -2324,10 +2339,10 @@ double PipCount_(){
    else {
       result = Difference;
    }
-   return result * 10000;
+   return result * CalcOffset;
 }
 double NumPip_SL(double Pips) {
-   double PipDistance = Pips / 10000;
+   double PipDistance = Pips / CalcOffset;
    double result;
    if(OrderType_ == "Buy") {
       result = CurrentPrice() - PipDistance;
@@ -2343,9 +2358,10 @@ double LotSize_Calc(){
 
 void MEX() {
    if(OrderType_ == "Buy") {
-      OrderSend(_Symbol, OP_BUY, LotSize_Calc(),NULL,3,StopLoss_d,NULL,NULL,NULL,0,clrGreen);
+      OrderSend(_Symbol, OP_BUY, LotSize_Calc(),NULL,3,StopLoss_d,TakeProfit_d,NULL,NULL,0,clrGreen);
    }
    else if(OrderType_ == "Sell") {
-      OrderSend(_Symbol, OP_SELL, LotSize_Calc(),NULL,3,StopLoss_d,NULL,NULL,NULL,0,clrRed);
+      OrderSend(_Symbol, OP_SELL, LotSize_Calc(),NULL,3,StopLoss_d,TakeProfit_d,NULL,NULL,0,clrRed);
    }
 }
+
