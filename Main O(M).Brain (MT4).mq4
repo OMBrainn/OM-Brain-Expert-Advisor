@@ -922,7 +922,9 @@ void MarkUpDisplay() {
 string SymbolStr = "";
 int CalcOffset = 10000;
 void SymbolCheck() {
-   if(Symbol() == "AUDUSD") {
+   if(Symbol() == "AUDUSD"
+   || Symbol() == "AUDUSD.HKT"
+   || Symbol() == "AUDUSD.i") {
       SymbolStr = "AU";
       CalcOffset = 10000;
       Print("AU");
@@ -1811,7 +1813,6 @@ void NeoChartEvent(const int id,
          Print("Stop Loss Changed to ", StopLoss_Edit.Text());
       }
       if(sparam=="X Trade") {
-         //RiskPercentage = 0.005;
          RiskPercentage = 0.005;
          MEX_Lock = true;
          Risk_Label.Text("Risk Percentage: 0.5%");
